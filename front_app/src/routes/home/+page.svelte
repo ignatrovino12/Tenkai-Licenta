@@ -1,33 +1,19 @@
-<script lang="ts">
+<script>
     import { onMount } from 'svelte';
+    import { logout_user } from '../utils';
+    import { get_cookie_values } from "../utils";
+    import {is_logged} from "../utils";
 
-onMount(() => {
-  // Codul dvs. aici
-  function checkCookie(cookieName: string): boolean {
-    const cookies = document.cookie.split(';');
-    for (let i = 0; i < cookies.length; i++) {
-      let cookie = cookies[i].trim();
-      if (cookie.startsWith(cookieName + '=')) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  function displayCookies() {
+onMount(async () => {
+  
     console.log("Cookies:", document.cookie);
-  }
-
-  if (checkCookie('csrftoken')) {
-    console.log("Cookie-ul 'csrftoken' există!");
-  } else {
-    console.log("Cookie-ul 'csrftoken' nu există!");
-  }
-
-  displayCookies();
+    const { username, csrfToken } = get_cookie_values();
+    const response = await is_logged(username, csrfToken);
+  
+ 
 });
-
+  
   </script>
   
-
+<button on:click={logout_user}>Logout</button>
 <p>This is home</p>

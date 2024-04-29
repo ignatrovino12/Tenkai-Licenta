@@ -19,6 +19,8 @@
         const data = await response.json();
         const csrfToken = data.csrf_token;
         document.cookie = `csrftoken=${csrfToken}; path=/;`;
+        document.cookie = `username=${username}; path=/;`;
+        
         window.location.href = "/home"; // Redirect to home if succesfull
       } else {
         const data = await response.json();
