@@ -8,10 +8,8 @@ import json
 import re
 from django.middleware.csrf import get_token
 from .models import UserProfile
+from .utils import verify_csrf
 
-
-
-@csrf_exempt
 def user_login(request):
     # csrf_token_header = request.META.get('HTTP_X_CSRFTOKEN', None)
     # csrf_token_cookie = request.COOKIES.get('csrftoken',None)
@@ -38,8 +36,6 @@ def user_login(request):
     
     return JsonResponse({'success': False, 'message': 'This method only supports POST requests'}, status=405)
     
-
-@csrf_exempt
 def user_signup(request):
     if request.method == 'POST':
         data = json.loads(request.body)
@@ -77,7 +73,6 @@ def user_signup(request):
     else:
         return JsonResponse({'success': False, 'message': 'This method only supports POST requests'}, status=405)
     
-@csrf_exempt
 def user_logout(request):
     if request.method == 'POST':
         try:
@@ -100,24 +95,10 @@ def user_logout(request):
     return JsonResponse({'success': False, 'message': 'Only POST requests are allowed'}, status=405)
 
 
-@csrf_exempt
 def is_logged(request):
     if request.method == 'POST':
-        try:
-            data = json.loads(request.body)
-            username = data.get('username')
-            csrf_token  = data.get('csrf_token')
-
-            user = User.objects.get(username=username)
-            profile, created = UserProfile.objects.get_or_create(user=user)
-
-            if profile.csrf_token != csrf_token:
-                return JsonResponse({'success': False, 'message': 'Invalid csrf token'})
-     
-            return JsonResponse({'success': True, 'message': 'User is logged in'})
-        except User.DoesNotExist:      
-            return JsonResponse({'success': False, 'message': 'User not found'}, status=400)
-    
-    return JsonResponse({'success': False, 'message': 'Only POST requests are allowed'}, status=405)
+        return JsonResponse({'success': True, 'message': 'Verified if it is logged at start of loading'}, status=200)
+    else:
+        return JsonResponse({'success': False, 'message': 'Only POST requests are allowed'}, status=405)
 
 

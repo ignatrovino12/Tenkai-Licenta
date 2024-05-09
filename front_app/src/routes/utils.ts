@@ -62,7 +62,7 @@ async function is_logged(username: string, csrfToken: string): Promise<{ success
       if (response.ok) {
           return await response.json();
       } else {
-          window.location.href = "/login"; 
+          // window.location.href = "/login"; 
           const data = await response.json();
           console.error('Logout failed:', data.message);
           throw new Error('Request failed with status ' + response.status);

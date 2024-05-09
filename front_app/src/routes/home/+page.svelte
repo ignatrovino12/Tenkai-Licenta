@@ -9,7 +9,6 @@ onMount(async () => {
     console.log("Cookies:", document.cookie);
     const { username, csrfToken } = get_cookie_values();
     const response = await is_logged(username, csrfToken);
-  
  
 });
   
