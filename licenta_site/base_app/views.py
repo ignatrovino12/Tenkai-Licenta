@@ -1,18 +1,16 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
-from django.contrib import messages
+# from django.contrib import messages
 from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_protect,csrf_exempt,requires_csrf_token
 import json
 import re
 from django.middleware.csrf import get_token
 from .models import UserProfile
-from .utils import verify_csrf
+from django.shortcuts import render
+import gpxpy
 
 def user_login(request):
-    # csrf_token_header = request.META.get('HTTP_X_CSRFTOKEN', None)
-    # csrf_token_cookie = request.COOKIES.get('csrftoken',None)
    
     if request.method == 'POST':
         body = json.loads(request.body)
@@ -94,11 +92,23 @@ def user_logout(request):
 
     return JsonResponse({'success': False, 'message': 'Only POST requests are allowed'}, status=405)
 
-
 def is_logged(request):
     if request.method == 'POST':
         return JsonResponse({'success': True, 'message': 'Verified if it is logged at start of loading'}, status=200)
     else:
         return JsonResponse({'success': False, 'message': 'Only POST requests are allowed'}, status=405)
 
+def display_gpx(request):
+    gpx_file_path = "C:\\Users\\ignat\\Documents\\Facultate2\\Licenta\\Licenta-2024\\licenta_site\\video_data\\gpx\\test2.gpx"
+    
+    with open(gpx_file_path, 'r') as gpx_file:
+        gpx = gpxpy.parse(gpx_file)
+
+    waypoints = []
+    for track in gpx.tracks:
+        for segment in track.segments:
+            for point in segment.points:
+                waypoints.append({'lat': point.latitude, 'lng': point.longitude})
+
+    return JsonResponse({'waypoints': waypoints})
 
