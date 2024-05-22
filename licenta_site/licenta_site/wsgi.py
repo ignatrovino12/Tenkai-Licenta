@@ -12,5 +12,6 @@ import os
 from django.core.wsgi import get_wsgi_application
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "licenta_site.settings")
+os.environ['GOOGLE_APPLICATION_CREDENTIALS']="./ServiceKeyGoogleCloud.json"
 
 application = get_wsgi_application()

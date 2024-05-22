@@ -98,17 +98,4 @@ def is_logged(request):
     else:
         return JsonResponse({'success': False, 'message': 'Only POST requests are allowed'}, status=405)
 
-def display_gpx(request):
-    gpx_file_path = "C:\\Users\\ignat\\Documents\\Facultate2\\Licenta\\Licenta-2024\\licenta_site\\video_data\\gpx\\test2.gpx"
-    
-    with open(gpx_file_path, 'r') as gpx_file:
-        gpx = gpxpy.parse(gpx_file)
-
-    waypoints = []
-    for track in gpx.tracks:
-        for segment in track.segments:
-            for point in segment.points:
-                waypoints.append({'lat': point.latitude, 'lng': point.longitude})
-
-    return JsonResponse({'waypoints': waypoints})
 

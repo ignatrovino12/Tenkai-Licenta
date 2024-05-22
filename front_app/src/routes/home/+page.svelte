@@ -4,20 +4,25 @@
   integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
 >
   import { onMount } from "svelte";
-  import { logout_user } from "../utils";
-  import { get_cookie_values } from "../utils";
-  import { is_logged } from "../utils";
-  import { SERVER_URL } from "../utils";
-  // import L from 'leaflet';
+  import {
+    get_cookie_values,
+    logout_user,
+    is_logged,
+    SERVER_URL,
+  } from "../../lib/utils";
+  import { find_closest_waypoint,update_map} from "../../lib/gpx_utils";
 
   let waypoints = [];
+  let videoURL = "/GH012287.MP4";
+  let captionsUrl = '/captions.vtt';
 
   onMount(async () => {
-    console.log("Cookies:", document.cookie);
+    // console.log("Cookies:", document.cookie);
     const { username, csrfToken } = get_cookie_values();
     const response = await is_logged(username, csrfToken);
 
     if (typeof window !== "undefined") {
+      //gpx window
       const L = await import("leaflet");
 
       let map = L.map("map").setView([51.505, -0.09], 13);
@@ -45,6 +50,15 @@
       ]);
       const polyline = L.polyline(latLngs, { color: "blue" }).addTo(map);
       map.fitBounds(polyline.getBounds());
+
+      //video window
+      let video = document.getElementById('video') as HTMLVideoElement;
+
+      video.addEventListener("timeupdate", () => {
+        const currentTime = video.currentTime;
+        const currentWaypoint = find_closest_waypoint(currentTime,waypoints);
+        update_map(currentWaypoint,map);
+      });
     }
   });
 </script>
@@ -68,3 +82,13 @@
   id="map"
   style="height: 500px; width: 500px; border: 1px solid #000;"
 ></div>
+
+<video id="video" controls style="width:100%;max-width:600px;">
+  <track kind="captions" src={captionsUrl} srclang="en" label="English">
+  {#if videoURL}
+    <source src={videoURL} type="video/mp4">
+    Your browser does not support the video tag.
+  {/if}
+</video>
+
+

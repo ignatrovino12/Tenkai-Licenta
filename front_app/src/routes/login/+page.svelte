@@ -2,7 +2,7 @@
   let username = "";
   let password = "";
   let errorMessage = "";
-  import { SERVER_URL } from "../utils";
+  import { SERVER_URL } from "../../lib/utils";
   import { onMount } from "svelte";
   
   async function handleSubmit() {

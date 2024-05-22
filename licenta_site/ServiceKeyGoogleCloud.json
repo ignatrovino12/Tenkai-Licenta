@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "licenta-424114",
+  "private_key_id": "e151c95206f260ba078f888654cd3d7258afb6a1",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQCqv08cLz4QhJQy\na/1sHVQomFCntRB3RH/jBAzvdIyDwbtX+0qLJWwmImvghHfi3xaVnOTb1KKF6iMH\nOnVZyxphpuSuvA6Cb327YmD0pEjWido3shATo8hdWWZAQLKnCz9/VyBgsHs5YX0R\neE9edS9fN+Th6RcYbn0qzfbCdVYqBc6GNde6RVZYO/RQ8WRusTdpz5zjpIzLKq2w\n2liotDz2gcqbLZ8Frw0nR/ozi4Nq6qGVillgczyfmRFK/PR4C8zTUYTwiCrff5+c\nX3+DNTKFM90jcoN647KT9qEM2L5Fz4Zha8yusVKjFOlqDG4uk/DorGpGoa+RC29H\nxRs1UYKFAgMBAAECggEAAj/uC2mF8FLG3xk0KBoE01oaafNFScUByFxzzS3kchH5\n5XFerJGsKJ54fGdSaw9UbVk5XLojAA+zMXOwOyQlb1bzGWhJ6qcMaY0kyORnP0hm\nsygp9RBJ4gz8/2i60d+gkQ11VEDPBtUFgFbs+MojeyYx4lYfY0eFZ6x6DVrdbUVL\nxdPLJzOFQ1aV/x1KKLJ873+HqHj/DSnwhGasArYhxq8IDig244Xprlvqa/PPV2QC\ndTh17TOvOOLucfdtj/M9TuiYkSsuVuF+/EkaAhoHm1mJOaig/E3YlwnRwMJe1qUo\nTk2xZ+x6TqGP1Pe7eX+UclPkPZvGnOiwABQ6Q3cq+wKBgQDpbPROlyETX6CbPsUw\n9saCQVrSMzt1+Wo8L1pB8mLhBMNRsnvCV4gQN2Fjlq4pf538TnEu+cHKT2IMb2zo\nTFtq4rVDsKeftEyoi8cC2QM3EKgV/aHWNJJf0cAVT1fpElIBriqrk+uvIZosJnnZ\nOom0ngsb1eTAM8KMFb44lPWNfwKBgQC7Qpf2PS3oSzfIobn62NF38QbnchtCWkci\nZW2V7nTKbukXwoTJCwFsn/lUsBD/b91d6LKLTEZLwGHok0MbB7oW474PN1qvna85\nidM/ri+yaWLX1yVshC5fGKkLWKrm/A1R3hgnl56VsBBRfTdvYbeJjH5zf7Rrh5cu\nkUYUYDG5+wKBgQCC2PmGCH+Y/ZTpEWG2Vc7m+z2u8NsXAa4EeMLOjtHQszvN0xA+\n25RBCtpD2hZc2tWztkEKBSUVhDRBJkDVYuAn5VeYzzDXfFkwbdIsDXwY5PRkB14t\n1iBrKAfVqjlsREHGAVyX+341GM/0icjp9T92CNXPT7I/74PRxOpxi0aufwKBgDmj\nSbrVIeg6HrV2chQv4GmWmpVqndFSkEqaBZz8hJ46fSx/BvgKlymkI85ZUyIMgIqD\nMVGG7KwsTvaTPTh4rGKXPszYMOWVF3YSYh9bsfqsTWw6IJ7CILPMl1uSsyfdtQvZ\n3H1zQbC5PIyYihOSdDe2MsXCLPpcBcCjnnpvEV85AoGBAJcyxYiKDHaWoVdQz1bd\nPFzQQYk8Hj7ElrJHlnrr3ppPttr1b64VDSsTmquuUXsqtafOjOQdtiG/IapKAf/Q\nFUyh+HWbEg+uWPUwAfKU3dDkMCN9pJpC4Jl3fFJzgyECVGEcTEIWc8u7rITED7EK\npuRiiCn8RnI98VCzjo2mV8fR\n-----END PRIVATE KEY-----\n",
+  "client_email": "licenta-cloud-storage-880@licenta-424114.iam.gserviceaccount.com",
+  "client_id": "106433916235256077208",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/licenta-cloud-storage-880%40licenta-424114.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}

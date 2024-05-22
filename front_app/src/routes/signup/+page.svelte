@@ -5,7 +5,7 @@
     let email = '';
     let error = '';
     let errorMessage = "";
-    import { SERVER_URL } from "../utils";
+    import { SERVER_URL } from "../../lib/utils";
   
     async function handleSubmit() {
   
