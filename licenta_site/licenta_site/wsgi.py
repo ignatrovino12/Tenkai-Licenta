@@ -11,7 +11,10 @@ import os
 
 from django.core.wsgi import get_wsgi_application
 
+current_directory = os.path.dirname(os.path.abspath(__file__))
+service_account_path = os.path.join(current_directory, '..', 'ServiceKeyGoogleCloud.json')
+
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "licenta_site.settings")
-os.environ['GOOGLE_APPLICATION_CREDENTIALS']="./ServiceKeyGoogleCloud.json"
+os.environ['GOOGLE_APPLICATION_CREDENTIALS']=service_account_path  #"Licenta-2024\licenta_site\ServiceKeyGoogleCloud.json"
 
 application = get_wsgi_application()
