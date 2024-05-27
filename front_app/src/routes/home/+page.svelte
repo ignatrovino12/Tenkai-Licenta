@@ -10,11 +10,11 @@
     is_logged,
     SERVER_URL,
   } from "../../lib/utils";
-  import { find_closest_waypoint,update_map} from "../../lib/gpx_utils";
+  import { find_closest_waypoint, update_map } from "../../lib/gpx_utils";
 
   let waypoints = [];
   let videoURL = "/GH012287.MP4";
-  let captionsUrl = '/captions.vtt';
+  let captionsUrl = "/captions.vtt";
 
   onMount(async () => {
     // console.log("Cookies:", document.cookie);
@@ -42,6 +42,8 @@
 
       const gpxData = await gpxResponse.json();
       const waypoints = gpxData.waypoints;
+      // const waypoints = gpxData.task_result;
+       
 
       // add the map route
       const latLngs = waypoints.map((point: { lat: number; lng: number }) => [
@@ -52,12 +54,12 @@
       map.fitBounds(polyline.getBounds());
 
       //video window
-      let video = document.getElementById('video') as HTMLVideoElement;
+      let video = document.getElementById("video") as HTMLVideoElement;
 
       video.addEventListener("timeupdate", () => {
         const currentTime = video.currentTime;
-        const currentWaypoint = find_closest_waypoint(currentTime,waypoints);
-        update_map(currentWaypoint,map);
+        const currentWaypoint = find_closest_waypoint(currentTime, waypoints);
+        update_map(currentWaypoint, map);
       });
     }
   });
@@ -84,11 +86,9 @@
 ></div>
 
 <video id="video" controls style="width:100%;max-width:600px;">
-  <track kind="captions" src={captionsUrl} srclang="en" label="English">
+  <track kind="captions" src={captionsUrl} srclang="en" label="English" />
   {#if videoURL}
-    <source src={videoURL} type="video/mp4">
+    <source src={videoURL} type="video/mp4" />
     Your browser does not support the video tag.
   {/if}
 </video>
-
-

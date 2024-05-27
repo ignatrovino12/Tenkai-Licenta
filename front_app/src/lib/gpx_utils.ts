@@ -7,6 +7,13 @@ interface Waypoint {
     time: number;
 }
 
+interface Waypoint_upload {
+  lat: number;
+  lng: number;
+  ele: number;
+  time: Date;
+}
+
 function find_closest_waypoint(time: number, waypoints: Waypoint[]): Waypoint {
     time = time + waypoints[0].time
     let closestWaypoint = waypoints[0];
@@ -40,7 +47,10 @@ function update_map(waypoint: Waypoint, map: any) {
     }
 }
 
+
+
 //   EXPORTS
-export { update_map }
+export { update_map}
 export { find_closest_waypoint }
-export type { Waypoint }
+export type { Waypoint,Waypoint_upload  }
+

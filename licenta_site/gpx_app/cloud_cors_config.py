@@ -14,7 +14,7 @@ def cors_configuration(bucket_name):
     bucket = storage_client.get_bucket(bucket_name)
     bucket.cors = [
         {
-            "origin": ["http://localhost:5173", "http://127.0.0.1:8000"],
+            "origin": ["http://localhost:5173", "http://127.0.0.1:8000","redis://localhost:6379/0"],
             "responseHeader" : ["*"],           
             "method": ['PUT', 'POST','OPTIONS','GET'],
             "maxAgeSeconds": 3600,

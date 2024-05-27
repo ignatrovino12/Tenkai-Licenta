@@ -1,16 +1,12 @@
 <script lang="ts">
     import { onMount } from "svelte";
     import { get_cookie_values, is_logged, SERVER_URL } from "../../lib/utils";
-    // import { exec } from 'node:child_process';
-
 
     let username: string;
     let csrfToken: string;
     let video_signedUrl: string;
-    let gpx_signedUrl : string;
+    let gpx_signedUrl: string;
     let selectedFileName: string;
-    let user_id = 0;
-   
 
     onMount(async () => {
         const { username: u, csrfToken: token } = get_cookie_values();
@@ -45,59 +41,36 @@
         }
     }
 
-    async function generateSignedUrl_gpx(gpxName: string) {
+    async function handleGPXUpload(mp4File: File) {
         try {
-            const response = await fetch(`${SERVER_URL}/upload_gpx/`, {
+            let formData = new FormData();
+            formData.append("mp4_file", mp4File);
+            formData.append("username", username);
+            formData.append("csrf_token", csrfToken);
+
+            let response = await fetch(`${SERVER_URL}/convert_gpx/`, {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    username: username,
-                    csrf_token: csrfToken,
-                    gpx_name: gpxName,
-                }),
+                body: formData,
             });
-            const data = await response.json();
+
             if (response.ok) {
-                gpx_signedUrl = data.signed_url;
-                return gpx_signedUrl
+                let result = await response.json();
+                if (result.success) {
+                    console.log(result.message);
+                    return true;
+                } else {
+                    console.error("Error:", result.message);
+                    return false;
+                }
             } else {
-                console.error("Failed to generate signed URL.");
+                console.error("Error:", response.statusText);
+                return false;
             }
         } catch (error) {
             console.error("Error:", error);
+            return false;
         }
     }
-
-    // async function handleGpxTransformation(file: File) {
-    //     const exifToolPath = "../../lib/exiftool.exe";
-    //     const gpxFmtPath = "../../lib/gpx.fmt";
-
-    //     exec(
-    //         `"${exifToolPath}" -p "${gpxFmtPath}" -ee -`,
-    //         async (error: Error | null, stdout : string, stderr: string) => {
-    //             if (error) {
-    //                 console.error(`Error executing command: ${error}`);
-    //                 return;
-    //             }
-
-    //             const gpxSignedUrl = await generateSignedUrl_gpx(`${file.name}.gpx`);
-
-    //             if (gpxSignedUrl) {
-    //                 const gpxResponse = await fetch(gpxSignedUrl, {
-    //                     method: "PUT",
-    //                     body : stdout,
-    //                 });
-    //                 if (gpxResponse.ok) {
-    //                     console.log(".gpx file uploaded successfully.");
-    //                 } else {
-    //                     console.error("Failed to upload .gpx file.");
-    //                 }
-    //             }
-    //         },
-    //     ).stdin!.write(file);;
-    // }
 
     async function handleFileUpload(event: Event) {
         event.preventDefault();
@@ -110,17 +83,22 @@
                 if (fileInput) {
                     const file = fileInput.files ? fileInput.files[0] : null;
                     if (file) {
-                        const response = await fetch(video_signedUrl, {
-                            method: "PUT",
-                            body: file,
-                        });
-                        if (response.ok) {
-                            console.log("File uploaded successfully.");
-                            
-                            // gpx
-                            // await handleGpxTransformation(file);
+                        // gpx transformation and upload
+                        const gpxUploadSuccess = await handleGPXUpload(file);
+                        
+                        if (gpxUploadSuccess) {
+      
+                            const response = await fetch(video_signedUrl, {
+                                method: "PUT",
+                                body: file,
+                            });
+                            if (response.ok) {
+                                console.log("File uploaded successfully.");
+                            } else {
+                                console.error("Failed to upload file.");
+                            }
                         } else {
-                            console.error("Failed to upload file.");
+                            console.error("GPX upload failed.");
                         }
                     } else {
                         console.error("No file selected.");

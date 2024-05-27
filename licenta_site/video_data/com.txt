@@ -1,3 +1,0 @@
-
-gpx: 
-"C:\Users\ignat\OneDrive\Desktop\New folder\exiftool.exe" -p "C:\Users\ignat\OneDrive\Desktop\New folder\gpx.fmt" -ee "C:\Users\ignat\OneDrive\Desktop\New folder\mp4 files\GH012287.MP4" > "C:\Users\ignat\OneDrive\Desktop\New folder\gpx files\test.gpx"
