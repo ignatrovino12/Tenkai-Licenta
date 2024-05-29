@@ -9,15 +9,18 @@
     logout_user,
     is_logged,
     SERVER_URL,
+    downloadVideo,
   } from "../../lib/utils";
   import { find_closest_waypoint, update_map } from "../../lib/gpx_utils";
 
   let waypoints = [];
-  let videoURL = "/GH012287.MP4";
+  // let videoURL = "/GH012287.MP4";
   let captionsUrl = "/captions.vtt";
+  let videoName = '';
+  let cloud_videoUrl=''; 
+  let video: HTMLVideoElement;
 
   onMount(async () => {
-    // console.log("Cookies:", document.cookie);
     const { username, csrfToken } = get_cookie_values();
     const response = await is_logged(username, csrfToken);
 
@@ -54,7 +57,7 @@
       map.fitBounds(polyline.getBounds());
 
       //video window
-      let video = document.getElementById("video") as HTMLVideoElement;
+      video = document.getElementById("video") as HTMLVideoElement;
 
       video.addEventListener("timeupdate", () => {
         const currentTime = video.currentTime;
@@ -63,6 +66,24 @@
       });
     }
   });
+
+  async function handleDownload(event: Event ) {
+    const form = event.target as HTMLFormElement;
+    videoName = form.videoName.value;
+
+    try {
+
+      const { cloud_videoUrl } = await downloadVideo(videoName);
+
+      if (cloud_videoUrl) {
+        document.getElementById("video")?.setAttribute("src", cloud_videoUrl);
+      }
+    } catch (error) {
+
+      console.error('Error:', error);
+    }
+  }
+
 </script>
 
 <head>
@@ -80,6 +101,12 @@
 <button on:click={logout_user}>Logout</button>
 <p>This is home</p>
 
+<form on:submit|preventDefault={handleDownload}>
+  <label for="videoName">Video Name:</label>
+  <input type="text" id="videoName" name="videoName" required>
+  <button type="submit">Upload</button>
+</form>
+
 <div
   id="map"
   style="height: 500px; width: 500px; border: 1px solid #000;"
@@ -87,8 +114,8 @@
 
 <video id="video" controls style="width:100%;max-width:600px;">
   <track kind="captions" src={captionsUrl} srclang="en" label="English" />
-  {#if videoURL}
-    <source src={videoURL} type="video/mp4" />
+  {#if cloud_videoUrl}
+    <source src={cloud_videoUrl} type="video/mp4" />
     Your browser does not support the video tag.
   {/if}
 </video>
