@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 
 from pathlib import Path
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -92,8 +93,11 @@ WSGI_APPLICATION = "licenta_site.wsgi.application"
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": "mydatabase",
+        "HOST": "db",
+        "USER": "myuser",
+        "PASSWORD": "mypassword",
     }
 }
 
@@ -144,10 +148,13 @@ FILE_UPLOAD_MAX_MEMORY_SIZE = 2621440
 
 # CELERY
 
-CELERY_BROKER_URL = 'redis://localhost:6379/0'  
-CELERY_RESULT_BACKEND = 'redis://localhost:6379/0' 
-CELERY_ACCEPT_CONTENT = ['json']
-CELERY_TASK_SERIALIZER = 'json'
-CELERY_RESULT_SERIALIZER = 'json'
-CELERY_TIMEZONE = 'UTC'
-CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
+CELERY_BROKER_REDIS_URL = 'redis://redis:6379/0'  
+CELERY_BROKER_URL = 'redis://redis:6379/0'  
+CELERY_RESULT_BACKEND = 'redis://redis:6379/0' 
+
+
+# GOOGLE STORAGE
+GOOGLE_APPLICATION_CREDENTIALS = os.environ.get('GOOGLE_APPLICATION_CREDENTIALS')
+current_directory = os.path.dirname(os.path.abspath(__file__))
+service_account_path = os.path.join(current_directory, '..', 'ServiceKeyGoogleCloud.json')
+os.environ['GOOGLE_APPLICATION_CREDENTIALS']=service_account_path  

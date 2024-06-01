@@ -72,38 +72,33 @@ def convert_gpx(request):
     if request.method == 'POST':
         try:
             username = request.POST.get('username')
-            print("NUMELE ESTE")
-            print(username)
-            mp4_file = request.FILES.get('mp4_file')
+            # print("NUMELE ESTE")
+            # print(username)
+            mp4_file_name = request.POST.get('mp4_file')
             user_id = get_user_id_from_username(username)
 
-            if not mp4_file:
+            if not mp4_file_name:
                 return JsonResponse({'success': False, 'message': 'No MP4 file provided'}, status=400)
 
-            mp4_name = mp4_file.name
-            gpx_name = mp4_name.rsplit('.', 1)[0]
-
             # save mp4 to temporary file 
-            temp_mp4_file = NamedTemporaryFile(suffix='.mp4')
-            for chunk in mp4_file.chunks():
-                temp_mp4_file.write(chunk)
-            temp_mp4_file_path = temp_mp4_file.name
+            # temp_mp4_file = NamedTemporaryFile(suffix='.mp4')
+            # for chunk in mp4_file.chunks():
+            #     temp_mp4_file.write(chunk)
+            # temp_mp4_file_path = temp_mp4_file.name
             
-            gpx_output = process_and_upload_gpx.delay(username, user_id, temp_mp4_file_path , gpx_name).get()
+            process_and_upload_gpx.delay(username, user_id,  mp4_file_name)
 
-            temp_mp4_file.close()
 
-            if gpx_output:
-                storage_client = storage.Client()
-                bucket_name="bucket-licenta-rovin"
+            # if gpx_output:
+            #     storage_client = storage.Client()
+            #     bucket_name="bucket-licenta-rovin"
 
-                gpx_blob_name = f'uploads/{user_id}/{gpx_name}.gpx'
-                blob = storage_client.bucket(bucket_name).blob(gpx_blob_name)
-                blob.upload_from_string(gpx_output, content_type='application/gpx+xml')
+            #     gpx_blob_name = f'uploads/{user_id}/{gpx_name}.gpx'
+            #     blob = storage_client.bucket(bucket_name).blob(gpx_blob_name)
+            #     blob.upload_from_string(gpx_output, content_type='application/gpx+xml')
 
-                return JsonResponse({'success': True, 'message': 'GPX uploaded to cloud'}, status=202)
-            else:
-                return JsonResponse({'success': False, 'message': 'Failed to queue task for GPX'}, status=500)
+            return JsonResponse({'success': True, 'message': 'GPX uploaded to cloud'}, status=202)
+    
         
         except json.JSONDecodeError:
             return JsonResponse({'success': False, 'message': 'Invalid JSON data'}, status=400)

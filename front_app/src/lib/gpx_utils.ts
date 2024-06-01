@@ -41,7 +41,6 @@ function update_map(waypoint: Waypoint, map: any) {
                 }
                 const newMarker = L.marker([waypoint.lat, waypoint.lng]).addTo(map);
                 map.currentMarker = newMarker;
-                //   map.setView([waypoint.lat, waypoint.lng], 13);
             }
         });
     }

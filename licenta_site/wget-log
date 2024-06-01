@@ -1,0 +1,6 @@
+--2024-06-01 12:47:11--  https://storage.googleapis.com/bucket-licenta-rovin/uploads/1/GH012287.mp4?X-Goog-Algorithm=GOOG4-RSA-SHA256
+Resolving storage.googleapis.com (storage.googleapis.com)... 142.250.180.219, 172.217.20.27, 142.251.208.123, ...
+Connecting to storage.googleapis.com (storage.googleapis.com)|142.250.180.219|:443... connected.
+HTTP request sent, awaiting response... 400 Bad Request
+2024-06-01 12:47:11 ERROR 400: Bad Request.
+

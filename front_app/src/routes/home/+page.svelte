@@ -74,6 +74,7 @@
     try {
 
       const { cloud_videoUrl } = await downloadVideo(videoName);
+      // console.log(cloud_videoUrl)
 
       if (cloud_videoUrl) {
         document.getElementById("video")?.setAttribute("src", cloud_videoUrl);

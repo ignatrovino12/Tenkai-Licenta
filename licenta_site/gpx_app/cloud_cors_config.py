@@ -65,6 +65,8 @@ def create_bucket(bucket_name):
     print(f"Bucket {bucket.name} created")   
 
 bucket_name="bucket-licenta-rovin"
-cors_configuration(bucket_name)
+# cors_configuration(bucket_name)
 bucket_metadata(bucket_name)
 # create_bucket(bucket_name)
+
+

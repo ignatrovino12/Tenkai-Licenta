@@ -41,7 +41,7 @@
         }
     }
 
-    async function handleGPXUpload(mp4File: File) {
+    async function handleGPXUpload(mp4File: string) {
         try {
             let formData = new FormData();
             formData.append("mp4_file", mp4File);
@@ -84,21 +84,19 @@
                     const file = fileInput.files ? fileInput.files[0] : null;
                     if (file) {
                         // gpx transformation and upload
-                        const gpxUploadSuccess = await handleGPXUpload(file);
-                        
-                        if (gpxUploadSuccess) {
-      
-                            const response = await fetch(video_signedUrl, {
-                                method: "PUT",
-                                body: file,
-                            });
-                            if (response.ok) {
-                                console.log("File uploaded successfully.");
-                            } else {
-                                console.error("Failed to upload file.");
-                            }
+                        // const gpxUploadSuccess = await handleGPXUpload(file);
+
+                        const response = await fetch(video_signedUrl, {
+                            method: "PUT",
+                            body: file,
+                        });
+                        if (response.ok) {
+                            console.log("File uploaded successfully.");
+                            const gpxUploadSuccess =
+                                await handleGPXUpload(file.name);
+                            
                         } else {
-                            console.error("GPX upload failed.");
+                            console.error("Failed to upload file.");
                         }
                     } else {
                         console.error("No file selected.");

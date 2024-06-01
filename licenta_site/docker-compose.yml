@@ -1,0 +1,54 @@
+version: '3'
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - .:/code
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+      - redis 
+    restart: always
+    networks:
+      - licenta-network
+
+  celery:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: celery -A licenta_site worker -l debug
+    volumes:
+      - .:/code
+    depends_on:
+      - db
+      - redis 
+    restart: always
+    networks:
+      - licenta-network
+
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: mydatabase
+      POSTGRES_USER: myuser
+      POSTGRES_PASSWORD: mypassword
+    restart: always
+    networks:
+      - licenta-network
+    ports:
+      - "5432:5432"
+
+  redis:
+    image: redis:latest  
+    restart: always
+    networks:
+      - licenta-network
+  
+networks:
+  licenta-network:
+    driver: bridge
