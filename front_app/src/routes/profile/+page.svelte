@@ -79,7 +79,7 @@
   <div class="container">
     <h1>Crop a round image</h1>
     <h3>Image</h3>
-    <div>
+    <div style="height:300px; width:600px;" >
       <img id="image" src="gojo.avif" alt="">
     </div>
     <h3>Result</h3>
@@ -88,4 +88,3 @@
     </p>
     <div id="result"></div>
   </div>
-  
