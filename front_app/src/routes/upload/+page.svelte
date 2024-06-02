@@ -6,6 +6,8 @@
     let csrfToken: string;
     let video_signedUrl: string;
     let gpx_signedUrl: string;
+    let selectedVideoName: string;
+    let selectedGPXName: string;
     let selectedFileName: string;
 
     onMount(async () => {
@@ -33,6 +35,31 @@
             const data = await response.json();
             if (response.ok) {
                 video_signedUrl = data.signed_url;
+            } else {
+                console.error("Failed to generate signed URL.");
+            }
+        } catch (error) {
+            console.error("Error:", error);
+        }
+    }
+
+    async function generateSignedUrl_video_gpx(videoName: string) {
+        try {
+            const response = await fetch(`${SERVER_URL}/upload_video_gpx/`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    username: username,
+                    csrf_token: csrfToken,
+                    video_name: videoName,
+                }),
+            });
+            const data = await response.json();
+            if (response.ok) {
+                video_signedUrl = data.video_url;
+                gpx_signedUrl = data.gpx_url;
             } else {
                 console.error("Failed to generate signed URL.");
             }
@@ -73,7 +100,6 @@
     }
 
     async function handleFileUpload(event: Event) {
-        event.preventDefault();
         try {
             await generateSignedUrl_video(selectedFileName);
             if (video_signedUrl) {
@@ -83,7 +109,7 @@
                 if (fileInput) {
                     const file = fileInput.files ? fileInput.files[0] : null;
                     if (file) {
-                        // gpx transformation and upload
+                        // video upload
 
                         const response = await fetch(video_signedUrl, {
                             method: "PUT",
@@ -91,9 +117,11 @@
                         });
                         if (response.ok) {
                             console.log("Video uploaded successfully.");
-                            const gpxUploadSuccess =
-                                await handleGPXUpload(file.name);
-                            
+
+                            //gpx transformation and upload
+                            const gpxUploadSuccess = await handleGPXUpload(
+                                file.name,
+                            );
                         } else {
                             console.error("Failed to upload file.");
                         }
@@ -109,10 +137,86 @@
         }
     }
 
+    async function handleFileUpload2(event: Event) {
+        try {
+            await generateSignedUrl_video_gpx(selectedVideoName);
+            if (video_signedUrl) {
+                const videoFileInput = document.getElementById(
+                    "videoFile",
+                ) as HTMLInputElement;
+                const videoFile = videoFileInput.files
+                    ? videoFileInput.files[0]
+                    : null;
+
+                if (videoFile) {
+                    const videoResponse = await fetch(video_signedUrl, {
+                        method: "PUT",
+                        headers: {
+                            "Content-Type": "video/mp4",
+                        },
+                        body: videoFile,
+                    });
+
+                    if (videoResponse.ok) {
+                        console.log("Video uploaded successfully.");
+                    } else {
+                        console.error("Failed to upload video.");
+                    }
+                } else {
+                    console.error("No video file selected.");
+                }
+            }
+
+            // Upload GPX
+            if (gpx_signedUrl) {
+                const gpxFileInput = document.getElementById(
+                    "gpxFile",
+                ) as HTMLInputElement;
+                const gpxFile = gpxFileInput.files
+                    ? gpxFileInput.files[0]
+                    : null;
+
+                if (gpxFile) {
+                    const gpxResponse = await fetch(gpx_signedUrl, {
+                        method: "PUT",
+                        headers: {
+                            "Content-Type": "application/gpx+xml",
+                        },
+                        body: gpxFile,
+                    });
+
+                    if (gpxResponse.ok) {
+                        console.log("GPX uploaded successfully.");
+                    } else {
+                        console.error("Failed to upload GPX.");
+                    }
+                } else {
+                    console.error("No GPX file selected.");
+                }
+            }
+        } catch (error) {
+            console.error("Error:", error);
+        }
+    }
+
     function handleFileChange(event: Event) {
         const fileInput = event.target as HTMLInputElement;
         if (fileInput.files && fileInput.files.length > 0) {
             selectedFileName = fileInput.files[0].name;
+        }
+    }
+
+    function handleVideoFileChange(event: Event) {
+        const fileInput = event.target as HTMLInputElement;
+        if (fileInput.files && fileInput.files.length > 0) {
+            selectedVideoName = fileInput.files[0].name;
+        }
+    }
+
+    function handleGpxFileChange(event: Event) {
+        const fileInput = event.target as HTMLInputElement;
+        if (fileInput.files && fileInput.files.length > 0) {
+            selectedGPXName = fileInput.files[0].name;
         }
     }
 </script>
@@ -120,6 +224,32 @@
 <h1>Upload MP4 File</h1>
 
 <form on:submit|preventDefault={handleFileUpload}>
+    <label for="File">MP4 Video:</label>
     <input type="file" accept=".mp4" on:change={handleFileChange} />
-    <button type="submit">Upload</button>
+    <button type="submit" disabled={!selectedFileName}>Upload</button>
+</form>
+
+<h1>Upload MP4 File and GPX File</h1>
+<form on:submit|preventDefault={handleFileUpload2}>
+    <div>
+        <label for="videoFile">MP4 Video:</label>
+        <input
+            type="file"
+            id="videoFile"
+            accept=".mp4"
+            on:change={handleVideoFileChange}
+        />
+    </div>
+    <div>
+        <label for="gpxFile">GPX File:</label>
+        <input
+            type="file"
+            id="gpxFile"
+            accept=".gpx"
+            on:change={handleGpxFileChange}
+        />
+    </div>
+    <button type="submit" disabled={!selectedVideoName || !selectedGPXName}
+        >Upload</button
+    >
 </form>

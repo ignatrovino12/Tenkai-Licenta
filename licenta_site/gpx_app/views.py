@@ -25,7 +25,7 @@ def get_user_id_from_username(username):
     except User.DoesNotExist:
         return None
 
-def generate_signed_url_video(request):
+def upload_video(request):
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
@@ -120,7 +120,7 @@ def get_video_by_name(request):
             
             video_blob = storage_client.bucket(bucket_name).blob(f'uploads/{user_id}/{video_name}')
 
-            expiration_time = datetime.now() + timedelta(minutes=10)
+            expiration_time = datetime.now() + timedelta(hours=8)
             
             video_signed_url = video_blob.generate_signed_url(
                 version='v4',
@@ -177,3 +177,54 @@ def display_gpx(request):
         return JsonResponse({'success': False, 'message': 'Invalid request method'}, status=400)
 
 
+def upload_video_gpx(request):
+
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            username = data.get('username')
+            video_name = data.get('video_name')
+            user_id = get_user_id_from_username(username)
+            
+            if not (video_name.endswith('.mp4') or video_name.endswith('.MP4')):
+                return JsonResponse({'success': False, 'message': 'File provided is not an mp4'}, status=404)
+
+            if video_name.endswith('.MP4'):
+                video_name = video_name.rsplit('.', 1)[0] + '.mp4'
+
+            if user_id is None:
+                return JsonResponse({'success': False, 'message': 'User not found'}, status=404)
+            
+            if Video.objects.filter(user_profile__user_id=user_id, video_name=video_name).exists():
+                return JsonResponse({'success': False, 'message': 'Video name already associated with the user'}, status=404)
+
+            # database creation
+            video = Video.objects.create(video_name=video_name, user_profile_id=user_id, timestamp=timezone.now())
+
+            video_blob = storage_client.bucket(bucket_name).blob(f'uploads/{user_id}/{video_name}')
+            current_datetime = datetime.now()
+            expiration_time = current_datetime + timedelta(minutes=10)
+            video_url = video_blob.generate_signed_url(
+                version='v4',
+                expiration=expiration_time,
+                method='PUT',
+                content_type='video/mp4'
+            )
+            
+            gpx_name = video_name.replace('.mp4', '.gpx')
+            
+            gpx_blob = storage_client.bucket(bucket_name).blob(f'uploads/{user_id}/{gpx_name}')
+            gpx_url= gpx_blob.generate_signed_url(
+                version='v4',
+                expiration=expiration_time,
+                method='PUT',
+                content_type = 'application/gpx+xml'
+            )
+
+
+
+            return JsonResponse({'success': True, 'video_url': video_url, 'gpx_url' : gpx_url}, status=200)
+        except json.JSONDecodeError:
+            return JsonResponse({'success': False, 'message': 'Invalid JSON data'}, status=400)
+    else:
+        return JsonResponse({'success': False, 'message': 'Invalid request method'}, status=400)

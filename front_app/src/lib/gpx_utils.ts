@@ -1,11 +1,3 @@
-// import L from 'leaflet';
-
-// interface Waypoint {
-//     lat: number;
-//     lng: number;
-//     ele: number;
-//     time: number;
-// }
 
 interface Waypoint_upload {
   lat: number;

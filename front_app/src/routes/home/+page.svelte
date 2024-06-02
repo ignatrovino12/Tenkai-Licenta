@@ -30,8 +30,6 @@
     if (typeof window !== "undefined") {
       //gpx window
 
-      // const waypoints = await loadGPXData(username, csrfToken);
-
       //video window
       video = document.getElementById("video") as HTMLVideoElement;
 
@@ -48,6 +46,9 @@
   async function handleDownload(event: Event) {
     const form = event.target as HTMLFormElement;
     videoName = form.videoName.value;
+    if (!videoName.endsWith('.mp4')) {
+      videoName += '.mp4';
+      }
     const { username, csrfToken } = get_cookie_values();
 
     try {
