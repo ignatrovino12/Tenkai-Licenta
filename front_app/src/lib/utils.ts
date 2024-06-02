@@ -1,8 +1,10 @@
 // IMPORTS
 import { onDestroy } from 'svelte';
+import { derived } from 'svelte/store';
 
 // FUNCTIONS
 const SERVER_URL = 'http://127.0.0.1:8000';
+
 
 function removeCookie(name: string) {
   document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
@@ -107,9 +109,26 @@ async function downloadVideo(videoName: string): Promise<{ cloud_videoUrl: strin
   }
 }
 
+type Unsubscribe = () => void;
+
+function watch(expression: () => string, callback: (newValue: string, oldValue?: string) => void) {
+  let oldValue: string | undefined = expression();
+
+  const unsubscribe: Unsubscribe = () => {};
+  onDestroy(unsubscribe);
+
+  return () => {
+      const newValue = expression();
+      if (newValue !== oldValue) {
+          callback(newValue, oldValue);
+          oldValue = newValue;
+      }
+  };
+}
+
 // EXPORTS
 export { SERVER_URL }
 export { get_cookie }
 export { get_cookie_values }
 export { logout_user }
-export { is_logged, downloadVideo}
+export { is_logged, downloadVideo,watch}
