@@ -16,6 +16,7 @@ from .tasks import process_and_upload_gpx
 
 
 bucket_name="bucket-licenta-rovin"
+storage_client = storage.Client()
 
 def get_user_id_from_username(username):
     try:
@@ -48,8 +49,8 @@ def generate_signed_url_video(request):
             video = Video.objects.create(video_name=video_name, user_profile_id=user_id, timestamp=timezone.now())
 
             # generate google cloud link
-            storage_client = storage.Client()
-            bucket_name="bucket-licenta-rovin"
+            # storage_client = storage.Client()
+            # bucket_name="bucket-licenta-rovin"
 
             blob = storage_client.bucket(bucket_name).blob(f'uploads/{user_id}/{video_name}')
             current_datetime = datetime.now()
@@ -72,30 +73,16 @@ def convert_gpx(request):
     if request.method == 'POST':
         try:
             username = request.POST.get('username')
-            # print("NUMELE ESTE")
-            # print(username)
+
             mp4_file_name = request.POST.get('mp4_file')
             user_id = get_user_id_from_username(username)
 
             if not mp4_file_name:
                 return JsonResponse({'success': False, 'message': 'No MP4 file provided'}, status=400)
 
-            # save mp4 to temporary file 
-            # temp_mp4_file = NamedTemporaryFile(suffix='.mp4')
-            # for chunk in mp4_file.chunks():
-            #     temp_mp4_file.write(chunk)
-            # temp_mp4_file_path = temp_mp4_file.name
             
             process_and_upload_gpx.delay(username, user_id,  mp4_file_name)
 
-
-            # if gpx_output:
-            #     storage_client = storage.Client()
-            #     bucket_name="bucket-licenta-rovin"
-
-            #     gpx_blob_name = f'uploads/{user_id}/{gpx_name}.gpx'
-            #     blob = storage_client.bucket(bucket_name).blob(gpx_blob_name)
-            #     blob.upload_from_string(gpx_output, content_type='application/gpx+xml')
 
             return JsonResponse({'success': True, 'message': 'GPX uploaded to cloud'}, status=202)
     
@@ -128,8 +115,8 @@ def get_video_by_name(request):
             if not Video.objects.filter(user_profile_id=user_id, video_name=video_name).exists():
                 return JsonResponse({'success': False, 'message': 'Video name is not associated with the user'}, status=409)
             
-            storage_client = storage.Client()
-            bucket_name = "bucket-licenta-rovin"
+            # storage_client = storage.Client()
+            # bucket_name = "bucket-licenta-rovin"
             
             video_blob = storage_client.bucket(bucket_name).blob(f'uploads/{user_id}/{video_name}')
 
@@ -155,22 +142,38 @@ def get_video_by_name(request):
         return JsonResponse({'success': False, 'message': 'Invalid request method'}, status=400)
 
 def display_gpx(request):
-    gpx_file_path = "./video_data/gpx/test.gpx"
 
-    with open(gpx_file_path, 'r') as gpx_file:
-        gpx = gpxpy.parse(gpx_file)
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            username = data.get('username')
+            video_name = data.get('video_name')
+            user_id = get_user_id_from_username(username)
+            
+            video_name = video_name.replace('.mp4', '.gpx')
 
-    waypoints = []
-    for track in gpx.tracks:
-        for segment in track.segments:
-            for point in segment.points:
-                 waypoints.append({
-                'lat': point.latitude,
-                'lng': point.longitude,
-                'ele': point.elevation,
-                'time': point.time.timestamp()
-            })
+            gpx_blob = storage_client.bucket(bucket_name).blob(f'uploads/{user_id}/{video_name}')
+            gpx_file = gpx_blob .download_as_string()
+     
+            gpx = gpxpy.parse(gpx_file)
 
-    return JsonResponse({'waypoints': waypoints})
+            waypoints = []
+            for track in gpx.tracks:
+                for segment in track.segments:
+                    for point in segment.points:
+                        waypoints.append({
+                        'lat': point.latitude,
+                        'lng': point.longitude,
+                        'ele': point.elevation,
+                        'time': point.time.timestamp()
+                    })
+
+            return JsonResponse({'waypoints': waypoints})
+        
+        except json.JSONDecodeError:
+            return JsonResponse({'success': False, 'message': 'Invalid JSON data'}, status=400)  
+    
+    else:
+        return JsonResponse({'success': False, 'message': 'Invalid request method'}, status=400)
 
 

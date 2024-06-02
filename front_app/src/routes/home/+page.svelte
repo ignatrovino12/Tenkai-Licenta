@@ -12,13 +12,16 @@
     downloadVideo,
   } from "../../lib/utils";
   import { find_closest_waypoint, update_map } from "../../lib/gpx_utils";
+  import type { Waypoint_upload } from "../../lib/gpx_utils";
 
-  let waypoints = [];
-  // let videoURL = "/GH012287.MP4";
+  let waypoints: Waypoint_upload[] = [];
+  let map: L.Map;
+  let polyline: L.Polyline;
   let captionsUrl = "/captions.vtt";
-  let videoName = '';
-  let cloud_videoUrl=''; 
+  let videoName = "";
+  let cloud_videoUrl = "";
   let video: HTMLVideoElement;
+  let noWaypointsMarker: any;
 
   onMount(async () => {
     const { username, csrfToken } = get_cookie_values();
@@ -26,65 +29,107 @@
 
     if (typeof window !== "undefined") {
       //gpx window
-      const L = await import("leaflet");
 
-      let map = L.map("map").setView([51.505, -0.09], 13);
-
-      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        attribution:
-          '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-      }).addTo(map);
-
-      const gpxResponse = await fetch(`${SERVER_URL}/display_gpx/`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ username, csrf_token: csrfToken }),
-      });
-
-      const gpxData = await gpxResponse.json();
-      const waypoints = gpxData.waypoints;
-      // const waypoints = gpxData.task_result;
-       
-
-      // add the map route
-      const latLngs = waypoints.map((point: { lat: number; lng: number }) => [
-        point.lat,
-        point.lng,
-      ]);
-      const polyline = L.polyline(latLngs, { color: "blue" }).addTo(map);
-      map.fitBounds(polyline.getBounds());
+      // const waypoints = await loadGPXData(username, csrfToken);
 
       //video window
       video = document.getElementById("video") as HTMLVideoElement;
 
       video.addEventListener("timeupdate", () => {
         const currentTime = video.currentTime;
-        const currentWaypoint = find_closest_waypoint(currentTime, waypoints);
-        update_map(currentWaypoint, map);
+        if (waypoints.length > 0) {
+          const currentWaypoint = find_closest_waypoint(currentTime, waypoints);
+          update_map(currentWaypoint, map);
+        }
       });
     }
   });
 
-  async function handleDownload(event: Event ) {
+  async function handleDownload(event: Event) {
     const form = event.target as HTMLFormElement;
     videoName = form.videoName.value;
+    const { username, csrfToken } = get_cookie_values();
 
     try {
-
       const { cloud_videoUrl } = await downloadVideo(videoName);
       // console.log(cloud_videoUrl)
 
       if (cloud_videoUrl) {
         document.getElementById("video")?.setAttribute("src", cloud_videoUrl);
+
+        waypoints = await loadGPXData(username, csrfToken, videoName);
       }
     } catch (error) {
-
-      console.error('Error:', error);
+      console.error("Error:", error);
     }
   }
 
+  async function loadGPXData(
+    username: string,
+    csrfToken: string,
+    videoName: string,
+  ) {
+    const L = await import("leaflet");
+
+    // Initialize the map if it hasn't been initialized yet
+    if (!map) {
+      map = L.map("map").setView([51.505, -0.09], 13);
+
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        attribution:
+          '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      }).addTo(map);
+    }
+
+    const gpxResponse = await fetch(`${SERVER_URL}/display_gpx/`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        username,
+        csrf_token: csrfToken,
+        video_name: videoName,
+      }),
+    });
+
+    const gpxData = await gpxResponse.json();
+    const waypoints = gpxData.waypoints;
+
+    // Remove the existing polyline if it exists
+    if (polyline) {
+      map.removeLayer(polyline);
+    }
+
+    if (gpxData.waypoints && gpxData.waypoints.length > 0) {
+      if (noWaypointsMarker) {
+        map.removeLayer(noWaypointsMarker);
+        noWaypointsMarker = null;
+      }
+
+      // Add the new map route
+      const latLngs = waypoints.map((point: { lat: number; lng: number }) => [
+        point.lat,
+        point.lng,
+      ]);
+      polyline = L.polyline(latLngs, { color: "blue" }).addTo(map);
+      map.fitBounds(polyline.getBounds());
+    } else {
+      console.error("No waypoints found in GPX data.");
+
+      const center = map.getCenter();
+      const message = "No waypoints found";
+
+      if (!noWaypointsMarker) {
+        noWaypointsMarker = L.marker(center)
+          .addTo(map)
+          .bindPopup(message)
+          .openPopup();
+      }
+    }
+
+    return waypoints;
+  }
 </script>
 
 <head>
@@ -104,7 +149,7 @@
 
 <form on:submit|preventDefault={handleDownload}>
   <label for="videoName">Video Name:</label>
-  <input type="text" id="videoName" name="videoName" required>
+  <input type="text" id="videoName" name="videoName" required />
   <button type="submit">Upload</button>
 </form>
 

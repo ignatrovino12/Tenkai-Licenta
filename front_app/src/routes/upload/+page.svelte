@@ -84,14 +84,13 @@
                     const file = fileInput.files ? fileInput.files[0] : null;
                     if (file) {
                         // gpx transformation and upload
-                        // const gpxUploadSuccess = await handleGPXUpload(file);
 
                         const response = await fetch(video_signedUrl, {
                             method: "PUT",
                             body: file,
                         });
                         if (response.ok) {
-                            console.log("File uploaded successfully.");
+                            console.log("Video uploaded successfully.");
                             const gpxUploadSuccess =
                                 await handleGPXUpload(file.name);
                             

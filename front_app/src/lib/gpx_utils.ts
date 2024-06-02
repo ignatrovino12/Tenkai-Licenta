@@ -1,20 +1,20 @@
 // import L from 'leaflet';
 
-interface Waypoint {
-    lat: number;
-    lng: number;
-    ele: number;
-    time: number;
-}
+// interface Waypoint {
+//     lat: number;
+//     lng: number;
+//     ele: number;
+//     time: number;
+// }
 
 interface Waypoint_upload {
   lat: number;
   lng: number;
   ele: number;
-  time: Date;
+  time: number;
 }
 
-function find_closest_waypoint(time: number, waypoints: Waypoint[]): Waypoint {
+function find_closest_waypoint(time: number, waypoints: Waypoint_upload[]): Waypoint_upload {
     time = time + waypoints[0].time
     let closestWaypoint = waypoints[0];
     let closestTimeDiff = Math.abs(waypoints[0].time - time);
@@ -29,7 +29,7 @@ function find_closest_waypoint(time: number, waypoints: Waypoint[]): Waypoint {
     return closestWaypoint;
 }
 
-function update_map(waypoint: Waypoint, map: any) {
+function update_map(waypoint: Waypoint_upload, map: any) {
     if (typeof window !== "undefined") {
         
         import("leaflet").then(L => {
@@ -51,5 +51,5 @@ function update_map(waypoint: Waypoint, map: any) {
 //   EXPORTS
 export { update_map}
 export { find_closest_waypoint }
-export type { Waypoint,Waypoint_upload  }
+export type { Waypoint_upload  }
 
