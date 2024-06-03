@@ -12,6 +12,10 @@
     let roundedImage: any;
     let cropperInstance: Cropper | null = null;
     let uploadButton: HTMLButtonElement | null = null;
+    let email = '';
+    let password = '';
+    let confirmPassword = '';
+    let oldPassword = '';
     
     function getRoundedCanvas(
       sourceCanvas: HTMLCanvasElement,
@@ -58,9 +62,10 @@
   
     if (response.ok) {
       const data = await response.json();
-      console.log(data.message);
+      alert(data.message);
     } else {
-      alert("Image upload failed.");
+      const data = await response.json();
+      alert(data.message);
     }
   }
     
@@ -134,6 +139,53 @@
         uploadButton.addEventListener("click", handleUpload);
       }
     });
+
+    async function handleSubmit() {
+
+      if ( password==='' && confirmPassword==='' && email===''){
+    alert('Please complete at least the email or the password before sending');
+    return;
+  }
+   
+    if ( password!=='' || confirmPassword!=='') {
+    if (password !== confirmPassword) {
+      alert('Passwords do not match');
+      return;
+    }
+  }
+
+
+    const { username, csrfToken } = get_cookie_values();
+
+    // Submit the form 
+    const response = await fetch(`${SERVER_URL}/update_credentials/`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        username: username,
+        csrf_token: csrfToken,
+        email : email,
+        password : password,
+        old_password : oldPassword,
+      })
+    });
+  
+    if (response.ok) {
+      const data = await response.json();
+      alert(data.message);
+    } else {
+      const data = await response.json();
+      alert(data.message);
+    }
+
+  
+    email = '';
+    password = '';
+    confirmPassword = '';
+    oldPassword= ''
+  }
   </script>
   
   <svelte:head>
@@ -141,8 +193,31 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/2.0.0-alpha.2/cropper.min.js"></script>
   </svelte:head>
   
+
+  <div class="container_credentials">
+    <h1>Change Credentials</h1>
+    
+    <form on:submit|preventDefault={handleSubmit}>
+
+      <label for="oldPassword">Current Password:</label><br>
+      <input type="password" id="oldPassword" bind:value={oldPassword}><br>
+
+      <label for="email">Email:</label><br>
+      <input type="email" id="email" bind:value={email}><br>
+      
+      <label for="password">New Password:</label><br>
+      <input type="password" id="password" bind:value={password}><br>
+      
+      <label for="confirmPassword">Confirm New Password:</label><br>
+      <input type="password" id="confirmPassword" bind:value={confirmPassword}><br>
+      
+      <button type="submit">Submit</button>
+    </form>
+  </div>
+
+
   <div class="container">
-    <h1>Change Profile</h1>
+    <h1>Change Profile Picture</h1>
     <form>
       <input type="file" id="fileInput" accept="image/*" />
     </form>

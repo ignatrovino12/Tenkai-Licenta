@@ -83,7 +83,6 @@ def user_logout(request):
         try:
             data = json.loads(request.body)
             username = data.get('username')
-            csrf_token  = data.get('csrf_token')
 
             user = User.objects.get(username=username)
             profile, created = UserProfile.objects.get_or_create(user=user)
@@ -120,6 +119,47 @@ def update_picture(request):
         else:
             return JsonResponse({'success': False, 'message': 'User does not exist or picture can not be uploaded'}, status=405)
         
+    else:
+        return JsonResponse({'success': False, 'message': 'Only POST requests are allowed'}, status=405)
+    
+
+def update_credentials(request):
+    if request.method == 'POST':
+
+        try:
+            data = json.loads(request.body)
+            username = data.get('username')
+            email=data.get('email')
+            password =data.get('password')
+            old_password =data.get('old_password')
+
+            user = User.objects.get(username=username)
+
+            if not user.check_password(old_password):
+                return JsonResponse({'success': False, 'message': 'Old password is incorrect'}, status=400)
+            
+            if password:
+                
+                if len(password)<8 or len(password)>30:
+                    return JsonResponse({'success': False, 'message': 'Password should have between 8 and 30 characters'}, status=400)
+
+                if not re.match(r'^(?=.*[A-Za-z])(?=.*\d)', password):
+                    return JsonResponse({'success': False, 'message': 'Password should contain both letters and numbers'}, status=400)
+                
+                user.set_password(password)
+                user.save()
+
+            if email:
+                user.email = email
+                user.save()
+
+
+
+            return JsonResponse({'success': True, 'message': 'Credentials updated successfully'}, status=200)
+
+
+        except User.DoesNotExist:      
+            return JsonResponse({'success': False, 'message': 'User not found'}, status=400)
     else:
         return JsonResponse({'success': False, 'message': 'Only POST requests are allowed'}, status=405)
 
