@@ -1,9 +1,12 @@
+<svelte:head>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="></script>
+</svelte:head>
+
 <script
+
   lang="ts"
-  src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-  integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
 >
-  import { onMount } from "svelte";
+  import { onMount } from "svelte"; 
   import {
     get_cookie_values,
     logout_user,

@@ -1,14 +1,21 @@
-from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
-# from django.contrib import messages
 from django.http import JsonResponse
 import json
 import re
 from django.middleware.csrf import get_token
 from .models import UserProfile
-from django.shortcuts import render
-import gpxpy
+from google.cloud import storage
+from .tasks import update_picture_task
+
+
+def get_user_id_from_username(username):
+    try:
+        user = User.objects.get(username=username)
+        return user.id
+    except User.DoesNotExist:
+        return None
+
 
 def user_login(request):
    
@@ -95,6 +102,24 @@ def user_logout(request):
 def is_logged(request):
     if request.method == 'POST':
         return JsonResponse({'success': True, 'message': 'Verified if it is logged at start of loading'}, status=200)
+    else:
+        return JsonResponse({'success': False, 'message': 'Only POST requests are allowed'}, status=405)
+
+def update_picture(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        username = data.get('username')
+        image=data.get('image')
+        user_id = get_user_id_from_username(username)
+
+        succes=update_picture_task.delay(user_id, image)
+
+
+        if succes :
+            return JsonResponse({'success': True, 'message': 'Updated the image for the user'}, status=200) 
+        else:
+            return JsonResponse({'success': False, 'message': 'User does not exist or picture can not be uploaded'}, status=405)
+        
     else:
         return JsonResponse({'success': False, 'message': 'Only POST requests are allowed'}, status=405)
 

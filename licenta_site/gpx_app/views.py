@@ -9,8 +9,6 @@ import gpxpy
 from django.utils import timezone
 from celery.result import AsyncResult
 from django.core.files.temp import NamedTemporaryFile
-import exiftool
-import os
 from django.conf import settings
 from .tasks import process_and_upload_gpx
 
@@ -47,10 +45,6 @@ def upload_video(request):
 
             # database creation
             video = Video.objects.create(video_name=video_name, user_profile_id=user_id, timestamp=timezone.now())
-
-            # generate google cloud link
-            # storage_client = storage.Client()
-            # bucket_name="bucket-licenta-rovin"
 
             blob = storage_client.bucket(bucket_name).blob(f'uploads/{user_id}/{video_name}')
             current_datetime = datetime.now()
@@ -115,8 +109,6 @@ def get_video_by_name(request):
             if not Video.objects.filter(user_profile_id=user_id, video_name=video_name).exists():
                 return JsonResponse({'success': False, 'message': 'Video name is not associated with the user'}, status=409)
             
-            # storage_client = storage.Client()
-            # bucket_name = "bucket-licenta-rovin"
             
             video_blob = storage_client.bucket(bucket_name).blob(f'uploads/{user_id}/{video_name}')
 

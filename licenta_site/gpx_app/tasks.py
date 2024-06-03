@@ -49,3 +49,4 @@ def process_and_upload_gpx(username, user_id , mp4_file_name):
 
         print(f"Error processing and uploading GPX: {str(e)}")
         return None
+    
