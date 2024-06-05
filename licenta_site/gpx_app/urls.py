@@ -7,5 +7,6 @@ urlpatterns = [
     path('convert_gpx/', views.convert_gpx, name='convert_gpx'),
     path('download_video/', views.get_video_by_name, name='download_video'),
     path('upload_video_gpx/',views.upload_video_gpx, name='upload_video_gpx'),
-    # path('task-status/<str:task_id>/', views.task_status, name='task_status'),
+    path('update_city_country/',views.update_city_country, name='update_city_country'),
+    path('display_city_country/',views.display_city_country, name='display_city_country'),
     ]

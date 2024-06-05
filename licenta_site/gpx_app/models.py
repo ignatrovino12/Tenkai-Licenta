@@ -9,6 +9,8 @@ class Video(models.Model):
     user_profile = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
     timestamp = models.DateTimeField(default=timezone.now)  
     nr_likes = models.IntegerField(default=0) 
+    country = models.CharField(max_length=50,default="")
+    city = models.CharField(max_length=50,default="")
 
     def __str__(self):
         return self.video_name

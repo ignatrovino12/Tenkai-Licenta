@@ -1,9 +1,9 @@
-
 <script
-  src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+  src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+  integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
   lang="ts"
 >
-  import { onMount } from "svelte"; 
+  import { onMount } from "svelte";
   import {
     get_cookie_values,
     logout_user,
@@ -22,6 +22,10 @@
   let cloud_videoUrl = "";
   let video: HTMLVideoElement;
   let noWaypointsMarker: any;
+  let lastWaypoint: Waypoint_upload;
+  let speed = 0;
+  let country= '';
+  let city = '';
 
   onMount(async () => {
     const { username, csrfToken } = get_cookie_values();
@@ -33,11 +37,48 @@
       //video window
       video = document.getElementById("video") as HTMLVideoElement;
 
-      video.addEventListener("timeupdate", () => {
-        const currentTime = video.currentTime;
-        if (waypoints.length > 0) {
-          const currentWaypoint = find_closest_waypoint(currentTime, waypoints);
-          update_map(currentWaypoint, map);
+      let intervalId: NodeJS.Timeout | null = null;
+      let isPlaying = false;
+
+      video.addEventListener("play", () => {
+        isPlaying = true;
+    
+        const updateInterval = 200;
+
+        const updateMapFunction = async () => {
+          if (!isPlaying) return;
+
+          const currentTime = video.currentTime;
+          if (waypoints.length > 0) {
+            const currentWaypoint = find_closest_waypoint(
+              currentTime,
+              waypoints,
+            );
+            speed = await update_map(
+              currentWaypoint,
+              map,
+              lastWaypoint,
+              currentTime,
+              speed,
+              waypoints[0],
+            );
+            if (lastWaypoint !== currentWaypoint) {
+              lastWaypoint = currentWaypoint;
+            }
+            // if (speed>1) 
+            // console.log(speed);
+            updateInfo(city, country, speed);
+          }
+        };
+
+        intervalId = setInterval(updateMapFunction, updateInterval);
+      });
+
+      video.addEventListener("pause", () => {
+        isPlaying = false;
+        if (intervalId) {
+          clearInterval(intervalId);
+          intervalId = null;
         }
       });
     }
@@ -46,19 +87,51 @@
   async function handleDownload(event: Event) {
     const form = event.target as HTMLFormElement;
     videoName = form.videoName.value;
-    if (!videoName.endsWith('.mp4')) {
-      videoName += '.mp4';
-      }
+    if (!videoName.endsWith(".mp4")) {
+      videoName += ".mp4";
+    }
     const { username, csrfToken } = get_cookie_values();
 
     try {
       const { cloud_videoUrl } = await downloadVideo(videoName);
-      // console.log(cloud_videoUrl)
 
       if (cloud_videoUrl) {
         document.getElementById("video")?.setAttribute("src", cloud_videoUrl);
 
         waypoints = await loadGPXData(username, csrfToken, videoName);
+
+        // new speed and waypoints
+        lastWaypoint = waypoints[0];
+        speed = 0;
+
+        // get city and country 
+
+      const LocationResponse = await fetch(`${SERVER_URL}/display_city_country/`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        username,
+        csrf_token: csrfToken,
+        video_name: videoName,
+        video_user: username,
+      }),
+    });
+
+    if (LocationResponse.ok){
+      const data = await LocationResponse.json();
+      city=data.city;
+      country=data.country;
+    }
+    else {
+      const data = await LocationResponse.json();
+      alert(data.message);
+    
+    }
+
+    
+        
       }
     } catch (error) {
       console.error("Error:", error);
@@ -91,6 +164,7 @@
         username,
         csrf_token: csrfToken,
         video_name: videoName,
+        video_user: username,
       }),
     });
 
@@ -131,6 +205,17 @@
 
     return waypoints;
   }
+
+  async function updateInfo(city: string, country:string, speed: number) {
+            try {
+                document.getElementById('speed')!.innerText = `Speed: ${speed} km/h`;
+                document.getElementById('city')!.innerText = `City: ${city}`;
+                document.getElementById('country')!.innerText = `Country: ${country}`;
+            } catch (error) {
+                console.error('Failed to update info:', error);
+            }
+        }
+
 </script>
 
 <head>
@@ -154,6 +239,13 @@
   <button type="submit">Upload</button>
 </form>
 
+
+<div id="info">
+  <p id="speed">Speed: </p>
+  <p id="city">City: </p>
+  <p id="country">Country: </p>
+</div>
+
 <div
   id="map"
   style="height: 500px; width: 500px; border: 1px solid #000;"
@@ -166,3 +258,4 @@
     Your browser does not support the video tag.
   {/if}
 </video>
+

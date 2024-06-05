@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts  import get_object_or_404
 from django.http import JsonResponse
 from google.cloud import storage
 import json
@@ -11,6 +11,8 @@ from celery.result import AsyncResult
 from django.core.files.temp import NamedTemporaryFile
 from django.conf import settings
 from .tasks import process_and_upload_gpx
+from geopy.geocoders import Nominatim
+import geopy
 
 
 bucket_name="bucket-licenta-rovin"
@@ -138,14 +140,14 @@ def display_gpx(request):
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
-            username = data.get('username')
+            username = data.get('video_user')
             video_name = data.get('video_name')
             user_id = get_user_id_from_username(username)
             
-            video_name = video_name.replace('.mp4', '.gpx')
+            gpx_name = video_name.replace('.mp4', '.gpx')
 
-            gpx_blob = storage_client.bucket(bucket_name).blob(f'uploads/{user_id}/{video_name}')
-            gpx_file = gpx_blob .download_as_string()
+            gpx_blob = storage_client.bucket(bucket_name).blob(f'uploads/{user_id}/{gpx_name}')
+            gpx_file = gpx_blob.download_as_string()
      
             gpx = gpxpy.parse(gpx_file)
 
@@ -159,6 +161,10 @@ def display_gpx(request):
                         'ele': point.elevation,
                         'time': point.time.timestamp()
                     })
+
+            if len(waypoints)<1 :
+                return JsonResponse({'success': False, 'message': 'No GPS metadata in video'}, status=400)  
+            
 
             return JsonResponse({'waypoints': waypoints})
         
@@ -218,5 +224,100 @@ def upload_video_gpx(request):
             return JsonResponse({'success': True, 'video_url': video_url, 'gpx_url' : gpx_url}, status=200)
         except json.JSONDecodeError:
             return JsonResponse({'success': False, 'message': 'Invalid JSON data'}, status=400)
+    else:
+        return JsonResponse({'success': False, 'message': 'Invalid request method'}, status=400)
+    
+
+def update_city_country(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            username = data.get('username')
+            video_name = data.get('video_name')
+            user_id = get_user_id_from_username(username)
+            
+            video_name=video_name.replace('.MP4', '.mp4')
+            gpx_name = video_name.replace('.mp4', '.gpx')
+
+            gpx_blob = storage_client.bucket(bucket_name).blob(f'uploads/{user_id}/{gpx_name}')
+            gpx_file = gpx_blob.download_as_string()
+     
+            gpx = gpxpy.parse(gpx_file)
+
+            waypoint = None
+
+            for track in gpx.tracks:
+                for segment in track.segments:
+                    for point in segment.points:
+                        waypoint = {
+                            'lat': point.latitude,
+                            'lng': point.longitude,
+                            'ele': point.elevation,
+                            'time': point.time.timestamp()
+                        }
+                        break 
+                    if waypoint:
+                        break
+                if waypoint:
+                    break
+
+            if waypoint is None :
+                return JsonResponse({'success': False, 'message': 'No GPS metadata in video'}, status=400)  
+
+            
+            #  find country/ city
+            try:
+                geolocator = Nominatim(user_agent="MyGeocodingAppVlad")
+                location = geolocator.reverse((waypoint['lat'], waypoint['lng']), exactly_one=True)
+                address = location.address
+                country = location.raw['address']['country']
+                city = location.raw['address']['city'] if 'city' in location.raw['address'] else location.raw['address']['town'] if 'town' in location.raw['address'] else location.raw['address']['village']
+                # print(f"Address: {address}, City: {city}, Country: {country}")
+
+                # set country/city in DB if not already done
+                video, created = Video.objects.get_or_create(video_name=video_name, user_profile__user_id=user_id, defaults={'country': country, 'city': city})
+                if not created:
+                    if not video.country:
+                        video.country = country
+                    if not video.city:
+                        video.city = city
+                    video.save()
+                return JsonResponse({'success': True, 'message': 'Updated country and city of the video'}, status=200)
+            except geopy.exc.GeocoderInsufficientPrivileges:
+                print("Error: Insufficient privileges Geocoder.")
+            except Exception as e:
+                print(f"An error occurred: {str(e)}")
+
+
+    
+        
+        except json.JSONDecodeError:
+            return JsonResponse({'success': False, 'message': 'Invalid JSON data'}, status=400)
+
+    else:
+        return JsonResponse({'success': False, 'message': 'Invalid request method'}, status=400)
+    
+
+def display_city_country(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            video_user = data.get('video_user')
+            video_name = data.get('video_name')
+            user_id = get_user_id_from_username(video_user)
+
+            video_name=video_name.replace('.MP4', '.mp4')
+
+            video = get_object_or_404(Video, video_name=video_name, user_profile__user_id=user_id)
+
+            # Check if the video has country and city data
+            if video.country and video.city:
+                return JsonResponse({'success': True, 'country': video.country, 'city': video.city})
+            else:
+                return JsonResponse({'success': False, 'message': 'Country and city information not available for the video'}, status=404)
+
+        except json.JSONDecodeError:
+                return JsonResponse({'success': False, 'message': 'Invalid JSON data'}, status=400)
+
     else:
         return JsonResponse({'success': False, 'message': 'Invalid request method'}, status=400)
