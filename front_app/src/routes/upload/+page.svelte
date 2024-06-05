@@ -116,6 +116,7 @@
                             method: "PUT",
                             body: file,
                         });
+
                         if (response.ok) {
                             console.log("Video uploaded successfully.");
 
@@ -123,24 +124,32 @@
                             const gpxUploadSuccess = await handleGPXUpload(
                                 file.name,
                             );
-                            if (gpxUploadSuccess){
+                            if (gpxUploadSuccess) {
                                 // update city/country
-                            
+
                                 let requestData = {
                                     username: username,
                                     csrf_token: csrfToken,
-                                    video_name: file.name
+                                    video_name: file.name,
                                 };
 
-                                let response = await fetch(`${SERVER_URL}/update_city_country/`, {
-                                    method: "POST",
-                                    headers: {
-                                        "Content-Type": "application/json"
+                                let responseCityCountry = await fetch(
+                                    `${SERVER_URL}/update_city_country/`,
+                                    {
+                                        method: "POST",
+                                        headers: {
+                                            "Content-Type": "application/json",
+                                        },
+                                        body: JSON.stringify(requestData),
                                     },
-                                    body: JSON.stringify(requestData)
-                                });
+                                );
 
-
+                                if (responseCityCountry.ok) {
+                                } else {
+                                    alert(
+                                        "Video uploaded successfully but it does not contain any GPS metadata.",
+                                    );
+                                }
                             }
                         } else {
                             console.error("Failed to upload file.");
@@ -169,7 +178,7 @@
                     : null;
 
                 if (videoFile) {
-                    videoName=videoFile.name
+                    videoName = videoFile.name;
                     const videoResponse = await fetch(video_signedUrl, {
                         method: "PUT",
                         headers: {
@@ -180,7 +189,6 @@
 
                     if (videoResponse.ok) {
                         console.log("Video uploaded successfully.");
-
                     } else {
                         console.error("Failed to upload video.");
                     }
@@ -211,20 +219,30 @@
                         console.log("GPX uploaded successfully.");
 
                         // update city/country
-                            
+
                         let requestData = {
                             username: username,
                             csrf_token: csrfToken,
                             video_name: videoName,
                         };
 
-                        let response = await fetch(`${SERVER_URL}/update_city_country/`, {
-                            method: "POST",
-                            headers: {
-                                "Content-Type": "application/json"
+                        let responseCityCountry = await fetch(
+                            `${SERVER_URL}/update_city_country/`,
+                            {
+                                method: "POST",
+                                headers: {
+                                    "Content-Type": "application/json",
+                                },
+                                body: JSON.stringify(requestData),
                             },
-                            body: JSON.stringify(requestData)
-                        });
+                        );
+
+                        if (responseCityCountry.ok) {
+                        } else {
+                            alert(
+                                "Video uploaded successfully but it does not contain any GPS metadata.",
+                            );
+                        }
                     } else {
                         console.error("Failed to upload GPX.");
                     }
