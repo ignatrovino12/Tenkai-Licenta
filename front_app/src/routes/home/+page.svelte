@@ -48,7 +48,6 @@
 
       video.addEventListener("play", () => {
         isPlaying = true;
-
         const updateInterval = 200;
 
         const updateMapFunction = async () => {
@@ -71,14 +70,44 @@
             if (lastWaypoint !== currentWaypoint) {
               lastWaypoint = currentWaypoint;
             }
-            // if (speed>1)
-            // console.log(speed);
             updateInfo(city, country, speed);
           }
         };
 
         intervalId = setInterval(updateMapFunction, updateInterval);
       });
+
+      video.addEventListener("timeupdate", () => {
+        isPlaying = true;
+        const updateInterval = 200;
+
+        const updateMapFunction = async () => {
+          if (!isPlaying) return;
+
+          const currentTime = video.currentTime;
+          if (waypoints.length > 0) {
+            const currentWaypoint = find_closest_waypoint(
+              currentTime,
+              waypoints,
+            );
+            speed = await update_map(
+              currentWaypoint,
+              map,
+              lastWaypoint,
+              currentTime,
+              speed,
+              waypoints[0],
+            );
+            if (lastWaypoint !== currentWaypoint) {
+              lastWaypoint = currentWaypoint;
+            }
+            updateInfo(city, country, speed);
+          }
+        };
+
+        intervalId = setInterval(updateMapFunction, updateInterval);
+        
+    });
 
       video.addEventListener("pause", () => {
         isPlaying = false;
