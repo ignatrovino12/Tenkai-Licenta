@@ -102,7 +102,7 @@ function selectVideoName(name: string) {
     const { username, csrfToken } = get_cookie_values();
 
     try {
-      const { cloud_videoUrl } = await downloadVideo(videoName);
+      const { cloud_videoUrl } = await downloadVideo(videoName,userData.username);
 
       if (cloud_videoUrl) {
         document.getElementById("video")?.setAttribute("src", cloud_videoUrl);
@@ -173,7 +173,7 @@ function selectVideoName(name: string) {
         username,
         csrf_token: csrfToken,
         video_name: videoName,
-        video_user: username,
+        video_user: userData.username,
       }),
     });
 

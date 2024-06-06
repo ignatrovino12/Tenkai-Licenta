@@ -13,6 +13,7 @@ from django.conf import settings
 from .tasks import process_and_upload_gpx
 from geopy.geocoders import Nominatim
 import geopy
+import time
 
 
 bucket_name="bucket-licenta-rovin"
@@ -95,9 +96,10 @@ def get_video_by_name(request):
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
-            username = data.get('username')
+            username = data.get('video_username')
             video_name = data.get('video_name')
             user_id = get_user_id_from_username(username)
+            print(username)
 
             if not video_name:
                 return JsonResponse({'success': False, 'message': 'Missing video_name parameter'}, status=400)
@@ -226,11 +228,22 @@ def upload_video_gpx(request):
             return JsonResponse({'success': False, 'message': 'Invalid JSON data'}, status=400)
     else:
         return JsonResponse({'success': False, 'message': 'Invalid request method'}, status=400)
-    
+
+def wait_for_blob(storage_client, bucket_name, user_id, gpx_name, timeout=30):
+    start_time = time.time()
+    while True:
+        gpx_blob = storage_client.bucket(bucket_name).blob(f'uploads/{user_id}/{gpx_name}')
+        if gpx_blob.exists():
+            return gpx_blob
+        elif time.time() - start_time > timeout:
+            raise TimeoutError("Timeout waiting for blob creation")
+        else:
+            time.sleep(1)  
 
 def update_city_country(request):
     if request.method == 'POST':
         try:
+
             data = json.loads(request.body)
             username = data.get('username')
             video_name = data.get('video_name')
@@ -239,7 +252,14 @@ def update_city_country(request):
             video_name=video_name.replace('.MP4', '.mp4')
             gpx_name = video_name.replace('.mp4', '.gpx')
 
-            gpx_blob = storage_client.bucket(bucket_name).blob(f'uploads/{user_id}/{gpx_name}')
+            # gpx_blob = storage_client.bucket(bucket_name).blob(f'uploads/{user_id}/{gpx_name}')
+            # await till resource is uploaded
+            try:
+                gpx_blob = wait_for_blob(storage_client, bucket_name, user_id, gpx_name)
+            except TimeoutError as e:
+                print("Timeout waiting for blob creation:", e)
+
+
             gpx_file = gpx_blob.download_as_string()
      
             gpx = gpxpy.parse(gpx_file)

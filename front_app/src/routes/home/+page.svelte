@@ -39,6 +39,7 @@
     if (typeof window !== "undefined") {
       //gpx window
 
+
       //video window
       video = document.getElementById("video") as HTMLVideoElement;
 
@@ -98,7 +99,7 @@
     const { username, csrfToken } = get_cookie_values();
 
     try {
-      const { cloud_videoUrl } = await downloadVideo(videoName);
+      const { cloud_videoUrl } = await downloadVideo(videoName,username);
 
       if (cloud_videoUrl) {
         document.getElementById("video")?.setAttribute("src", cloud_videoUrl);

@@ -76,7 +76,7 @@ async function is_logged(username: string, csrfToken: string): Promise<{ success
     return { success: false, message: 'An error occurred while processing the request' };
   }
 }
-async function downloadVideo(videoName: string): Promise<{ cloud_videoUrl: string }> {
+async function downloadVideo(videoName: string,videoUser:string): Promise<{ cloud_videoUrl: string }> {
   const username = get_cookie('username');
   const csrfToken = get_cookie('csrftoken');
 
@@ -86,7 +86,7 @@ async function downloadVideo(videoName: string): Promise<{ cloud_videoUrl: strin
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ username, csrf_token: csrfToken, video_name: videoName })
+      body: JSON.stringify({ username, csrf_token: csrfToken, video_name: videoName,video_username:videoUser })
     });
 
     if (!response.ok) {
@@ -151,7 +151,11 @@ function redirectToCurrentUserProfile() {
   window.location.href =`/profile/${username}`; 
 }
 
+function wait(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 // EXPORTS
-export { SERVER_URL,get_cookie, get_cookie_values ,logout_user }
+export { SERVER_URL,get_cookie, get_cookie_values ,logout_user,wait }
 export { is_logged, downloadVideo,watch}
 export {redirectToHome,redirectToLogin,redirectToSignUp,redirectToProfile,redirectToCurrentUserProfile,redirectToUpload}
