@@ -8,5 +8,6 @@ urlpatterns = [
     path('is_logged/', views.is_logged, name='is_logged'),
     path('update_picture/',views.update_picture, name='update_picture'),
     path('update_credentials/', views.update_credentials, name='update_credentials'),
-    # path('display_gpx/', views.display_gpx, name='display_gpx'),
+    path('profile/<str:username>', views.profile_view, name='profile'),
+
 ]

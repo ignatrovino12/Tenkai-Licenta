@@ -145,6 +145,7 @@
                                 );
 
                                 if (responseCityCountry.ok) {
+                                    alert("Video uploaded successfully.");
                                 } else {
                                     alert(
                                         "Video uploaded successfully but it does not contain any GPS metadata.",
@@ -238,6 +239,7 @@
                         );
 
                         if (responseCityCountry.ok) {
+                            alert("Video uploaded successfully.");
                         } else {
                             alert(
                                 "Video uploaded successfully but it does not contain any GPS metadata.",

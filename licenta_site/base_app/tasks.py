@@ -32,11 +32,6 @@ def update_picture_task(user_id, image):
         blob = storage_client.bucket(bucket_name).blob(image_blob_name)
         blob.upload_from_string(image_bytes, content_type=content_type)
 
-        # database mark
-        user_profile = UserProfile.objects.get(user_id=user_id)
-        user_profile.haspicture = True
-        user_profile.save()
-
         return True
 
     except UserProfile.DoesNotExist:

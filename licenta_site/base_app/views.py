@@ -7,7 +7,11 @@ from django.middleware.csrf import get_token
 from .models import UserProfile
 from google.cloud import storage
 from .tasks import update_picture_task
+from datetime import datetime, timedelta
+from gpx_app.models import Video
 
+storage_client = storage.Client()
+bucket_name = "bucket-licenta-rovin"
 
 def get_user_id_from_username(username):
     try:
@@ -115,6 +119,10 @@ def update_picture(request):
 
 
         if succes :
+            # database mark
+            user_profile = UserProfile.objects.get(user_id=user_id)
+            user_profile.has_picture = True
+            user_profile.save()
             return JsonResponse({'success': True, 'message': 'Updated the image for the user'}, status=200) 
         else:
             return JsonResponse({'success': False, 'message': 'User does not exist or picture can not be uploaded'}, status=405)
@@ -162,5 +170,61 @@ def update_credentials(request):
             return JsonResponse({'success': False, 'message': 'User not found'}, status=400)
     else:
         return JsonResponse({'success': False, 'message': 'Only POST requests are allowed'}, status=405)
+
+
+def profile_view(request, username):
+    if request.method == 'POST':
+        try:
+            user = User.objects.get(username=username)
+            user_profile = UserProfile.objects.get(user=user)
+            has_picture = user_profile.has_picture
+            user_id = get_user_id_from_username(username)
+
+             # check if user has image or we set default otherwise
+            if(has_picture is True):
+                file_path = f'images/{user_id}/ppicture.png'
+            else :
+                file_path = f'images/0/ppicture.png'
+
+
+            # image link for user
+            blob = storage_client.bucket(bucket_name).blob(file_path)
+            current_datetime = datetime.now()
+            expiration_time = current_datetime + timedelta(hours=4)
+
+
+            image_link = blob.generate_signed_url(
+                version='v4',
+                expiration=expiration_time,
+                method='GET',
+            )
+
+            # videos of the user
+            videos = Video.objects.filter(user_profile=user_profile)
+
+            video_data = []
+            for video in videos:
+                video_data.append({
+                    'video_name': video.video_name,
+                    'country': video.country,
+                    'city': video.city
+                })
+
+            return JsonResponse({
+                'username': username,
+                'image_link': image_link,
+                'videos': video_data
+            })
+        
+        except User.DoesNotExist:
+            return JsonResponse({'success': False, 'message': 'User not found'}, status=404)
+
+        except UserProfile.DoesNotExist:
+            return JsonResponse({'success': False, 'message': 'User not found'}, status=404)
+          
+
+    else:
+        return JsonResponse({'success': False, 'message': 'Only POST requests are allowed'}, status=405)
+    
 
 
