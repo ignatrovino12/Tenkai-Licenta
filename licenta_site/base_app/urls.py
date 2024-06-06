@@ -9,5 +9,7 @@ urlpatterns = [
     path('update_picture/',views.update_picture, name='update_picture'),
     path('update_credentials/', views.update_credentials, name='update_credentials'),
     path('profile/<str:username>', views.profile_view, name='profile'),
+    path('display_videos_profile/',views.display_videos_profile, name='display_videos_profile'),
+    path('delete_video/',views.delete_video,name='delete_video'),
 
 ]

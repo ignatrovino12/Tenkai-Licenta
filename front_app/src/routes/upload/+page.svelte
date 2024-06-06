@@ -1,6 +1,16 @@
 <script lang="ts">
     import { onMount } from "svelte";
-    import { get_cookie_values, is_logged, SERVER_URL } from "../../lib/utils";
+    import {
+        get_cookie_values,
+        is_logged,
+        SERVER_URL,
+        redirectToHome,
+        redirectToLogin,
+        redirectToSignUp,
+        redirectToProfile,
+        redirectToUpload,
+        logout_user,
+    } from "../../lib/utils";
 
     let username: string;
     let csrfToken: string;
@@ -278,6 +288,14 @@
         }
     }
 </script>
+
+<!-- Taskbar -->
+<button on:click={logout_user}>Logout</button>
+<button on:click={redirectToHome}>Home</button>
+<button on:click={redirectToProfile}>Profile</button>
+<button on:click={redirectToUpload}>Upload</button>
+<button on:click={redirectToLogin}>Login</button>
+<button on:click={redirectToSignUp}>Sign up</button>
 
 <h1>Upload MP4 File</h1>
 

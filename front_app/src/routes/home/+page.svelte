@@ -10,6 +10,11 @@
     is_logged,
     SERVER_URL,
     downloadVideo,
+    redirectToHome,
+    redirectToLogin,
+    redirectToSignUp,
+    redirectToProfile,
+    redirectToUpload,
   } from "../../lib/utils";
   import { find_closest_waypoint, update_map } from "../../lib/gpx_utils";
   import type { Waypoint_upload } from "../../lib/gpx_utils";
@@ -24,8 +29,8 @@
   let noWaypointsMarker: any;
   let lastWaypoint: Waypoint_upload;
   let speed = 0;
-  let country= '';
-  let city = '';
+  let country = "";
+  let city = "";
 
   onMount(async () => {
     const { username, csrfToken } = get_cookie_values();
@@ -42,7 +47,7 @@
 
       video.addEventListener("play", () => {
         isPlaying = true;
-    
+
         const updateInterval = 200;
 
         const updateMapFunction = async () => {
@@ -65,7 +70,7 @@
             if (lastWaypoint !== currentWaypoint) {
               lastWaypoint = currentWaypoint;
             }
-            // if (speed>1) 
+            // if (speed>1)
             // console.log(speed);
             updateInfo(city, country, speed);
           }
@@ -104,34 +109,33 @@
         lastWaypoint = waypoints[0];
         speed = 0;
 
-        // get city and country 
+        // get city and country
 
-      const LocationResponse = await fetch(`${SERVER_URL}/display_city_country/`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        username,
-        csrf_token: csrfToken,
-        video_name: videoName,
-        video_user: username,
-      }),
-    });
+        const LocationResponse = await fetch(
+          `${SERVER_URL}/display_city_country/`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              username,
+              csrf_token: csrfToken,
+              video_name: videoName,
+              video_user: username,
+            }),
+          },
+        );
 
-    if (LocationResponse.ok){
-      const data = await LocationResponse.json();
-      city=data.city;
-      country=data.country;
-    }
-    else {
-      const data = await LocationResponse.json();
-      alert(data.message);
-    
-    }
+        if (LocationResponse.ok) {
+          const data = await LocationResponse.json();
+          city = data.city;
+          country = data.country;
 
-    
-        
+        } else {
+          const data = await LocationResponse.json();
+          alert(data.message);
+        }
       }
     } catch (error) {
       console.error("Error:", error);
@@ -206,16 +210,15 @@
     return waypoints;
   }
 
-  async function updateInfo(city: string, country:string, speed: number) {
-            try {
-                document.getElementById('speed')!.innerText = `Speed: ${speed} km/h`;
-                document.getElementById('city')!.innerText = `City: ${city}`;
-                document.getElementById('country')!.innerText = `Country: ${country}`;
-            } catch (error) {
-                console.error('Failed to update info:', error);
-            }
-        }
-
+  async function updateInfo(city: string, country: string, speed: number) {
+    try {
+      document.getElementById("speed")!.innerText = `Speed: ${speed} km/h`;
+      document.getElementById("city")!.innerText = `City: ${city}`;
+      document.getElementById("country")!.innerText = `Country: ${country}`;
+    } catch (error) {
+      console.error("Failed to update info:", error);
+    }
+  }
 </script>
 
 <head>
@@ -230,8 +233,15 @@
   />
 </head>
 
+<!-- Taskbar -->
 <button on:click={logout_user}>Logout</button>
-<p>This is home</p>
+<button on:click={redirectToHome}>Home</button>
+<button on:click={redirectToProfile}>Profile</button>
+<button on:click={redirectToUpload}>Upload</button>
+<button on:click={redirectToLogin}>Login</button>
+<button on:click={redirectToSignUp}>Sign up</button>
+
+<h2>Home page</h2>
 
 <form on:submit|preventDefault={handleDownload}>
   <label for="videoName">Video Name:</label>
@@ -239,23 +249,27 @@
   <button type="submit">Upload</button>
 </form>
 
-
-<div id="info">
-  <p id="speed">Speed: </p>
-  <p id="city">City: </p>
-  <p id="country">Country: </p>
+<div id="info" style="display: flex; justify-content: center; gap: 20px;">
+  <p id="speed">Speed:</p>
+  <p id="city">City:</p>
+  <p id="country">Country:</p>
 </div>
 
-<div
-  id="map"
-  style="height: 500px; width: 500px; border: 1px solid #000;"
-></div>
+<div style="display: flex; align-items: stretch; justify-content: center;">
+  <div
+    id="map"
+    style="width: 500px; height: 500px; border: 1px solid #000;"
+  ></div>
 
-<video id="video" controls style="width:100%;max-width:600px;">
-  <track kind="captions" src={captionsUrl} srclang="en" label="English" />
-  {#if cloud_videoUrl}
-    <source src={cloud_videoUrl} type="video/mp4" />
-    Your browser does not support the video tag.
-  {/if}
-</video>
-
+  <video
+    id="video"
+    controls
+    style="max-width: 600px; height: 500px; background-color:#3b3b3b;"
+  >
+    <track kind="captions" src={captionsUrl} srclang="en" label="English" />
+    {#if cloud_videoUrl}
+      <source src={cloud_videoUrl} type="video/mp4" />
+      Your browser does not support the video tag.
+    {/if}
+  </video>
+</div>

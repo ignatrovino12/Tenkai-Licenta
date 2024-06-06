@@ -126,9 +126,32 @@ function watch(expression: () => string, callback: (newValue: string, oldValue?:
   };
 }
 
+function redirectToHome() {
+  window.location.href = '/home'; 
+}
+
+function redirectToLogin() {
+  window.location.href = '/login'; 
+}
+
+function redirectToSignUp() {
+  window.location.href = '/signup'; 
+}
+
+function redirectToProfile() {
+  window.location.href = '/profile'; 
+}
+
+function redirectToUpload() {
+  window.location.href = '/upload'; 
+}
+
+function redirectToCurrentUserProfile() {
+  const username = get_cookie('username');
+  window.location.href =`/profile/${username}`; 
+}
+
 // EXPORTS
-export { SERVER_URL }
-export { get_cookie }
-export { get_cookie_values }
-export { logout_user }
+export { SERVER_URL,get_cookie, get_cookie_values ,logout_user }
 export { is_logged, downloadVideo,watch}
+export {redirectToHome,redirectToLogin,redirectToSignUp,redirectToProfile,redirectToCurrentUserProfile,redirectToUpload}

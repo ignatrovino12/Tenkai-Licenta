@@ -214,7 +214,7 @@ def profile_view(request, username):
                 'username': username,
                 'image_link': image_link,
                 'videos': video_data
-            })
+            },status=200)
         
         except User.DoesNotExist:
             return JsonResponse({'success': False, 'message': 'User not found'}, status=404)
@@ -225,6 +225,66 @@ def profile_view(request, username):
 
     else:
         return JsonResponse({'success': False, 'message': 'Only POST requests are allowed'}, status=405)
+
+def display_videos_profile(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            username = data.get('username')
+            user = User.objects.get(username=username)
+            user_profile = UserProfile.objects.get(user=user)
+
+            videos = Video.objects.filter(user_profile=user_profile)
+
+            video_data = []
+            for video in videos:
+                video_data.append({
+                    'video_name': video.video_name,
+                    'country': video.country,
+                    'city': video.city
+                })
+
+            return JsonResponse({'succes':True, 'videos': video_data}, status=200)
+        
+        except User.DoesNotExist:
+            return JsonResponse({'success': False, 'message': 'User not found'}, status=404)
+
+        except UserProfile.DoesNotExist:
+            return JsonResponse({'success': False, 'message': 'User not found'}, status=404)
+          
+
+    else:
+        return JsonResponse({'success': False, 'message': 'Only POST requests are allowed'}, status=405)
+    
+
+def delete_video(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            username = data.get('username')
+            video_name = data.get('video_name')
+            user = User.objects.get(username=username)
+            user_profile = UserProfile.objects.get(user=user)
+
+            video = Video.objects.get(user_profile=user_profile, video_name=video_name)
+            video.delete()
+
+            return JsonResponse({'success': True, 'message': 'Video deleted successfully'}, status=200)
+        
+        except User.DoesNotExist:
+            return JsonResponse({'success': False, 'message': 'User not found'}, status=404)
+        
+        except UserProfile.DoesNotExist:
+            return JsonResponse({'success': False, 'message': 'User profile not found'}, status=404)
+        
+        except Video.DoesNotExist:
+            return JsonResponse({'success': False, 'message': 'Video not found'}, status=404)
+    
+    else:
+        return JsonResponse({'success': False, 'message': 'Only POST requests are allowed'}, status=405)
+
+
+
     
 
 

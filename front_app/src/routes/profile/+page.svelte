@@ -4,11 +4,23 @@
     logout_user,
     is_logged,
     SERVER_URL,
+    redirectToHome,
+    redirectToLogin,
+    redirectToSignUp,
+    redirectToProfile,
+    redirectToCurrentUserProfile,
+    redirectToUpload,
   } from "../../lib/utils";
 
     import { onMount } from "svelte";
     import Cropper from "cropperjs";
     
+    interface Video {
+    video_name: string;
+    country: string;
+    city: string;
+  }
+
     let roundedImage: any;
     let cropperInstance: Cropper | null = null;
     let uploadButton: HTMLButtonElement | null = null;
@@ -16,6 +28,7 @@
     let password = '';
     let confirmPassword = '';
     let oldPassword = '';
+    let videos: Video[] = [];
     
     function getRoundedCanvas(
       sourceCanvas: HTMLCanvasElement,
@@ -68,6 +81,52 @@
       alert(data.message);
     }
   }
+
+  async function DisplayVideos() {
+    const { username, csrfToken } = get_cookie_values();
+    try {
+      const response = await fetch(`${SERVER_URL}/display_videos_profile/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ username,csrf_token:csrfToken })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        return data.videos;
+      } else {
+        console.error('Failed to get videos from user');
+        return [];
+      }
+    } catch (error) {
+      console.error('Error fetching videos');
+      return [];
+    }
+  }
+
+  async function deleteVideo(videoName: string) {
+    const { username, csrfToken } = get_cookie_values();
+    try {
+      const response = await fetch(`${SERVER_URL}/delete_video/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ username,csrf_token:csrfToken, video_name: videoName  })
+      });
+
+      if (response.ok) {
+        location.reload();
+      } else {
+        console.error('Failed to delete video');
+
+      }
+    } catch (error) {
+      console.error('Error deleting video');
+    }
+  }
     
     onMount(async () => {
 
@@ -79,6 +138,7 @@
       const result = document.getElementById("result");
       const uploadButton = document.getElementById("uploadButton");
       const cropperContainer = document.getElementById("cropper-container");
+      videos = await DisplayVideos();
     
       if (input instanceof HTMLInputElement && button && cropperContainer && uploadButton) {
         input.addEventListener("change", (event) => {
@@ -193,6 +253,16 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/2.0.0-alpha.2/cropper.min.js"></script>
   </svelte:head>
   
+  <!-- Taskbar -->
+<button on:click={logout_user}>Logout</button>
+<button on:click={redirectToHome}>Home</button>
+<button on:click={redirectToProfile}>Profile</button>
+<button on:click={redirectToUpload}>Upload</button>
+<button on:click={redirectToLogin}>Login</button>
+<button on:click={redirectToSignUp}>Sign up</button>
+
+<h1>Your public profile</h1>
+<button on:click={redirectToCurrentUserProfile}>Your profile</button>
 
   <div class="container_credentials">
     <h1>Change Credentials</h1>
@@ -230,5 +300,21 @@
     <p>
       <button type="button" id="uploadButton">Upload</button>
     </p>
+  </div>
+
+  <div class="container_videos">
+    <h1>Delete videos</h1>
+    {#if videos.length > 0}
+      <ul>
+        {#each videos as video}
+          <li>
+            <p>Video Name: {video.video_name.replace('.mp4', '')} - Country: {video.country} , City: {video.city}</p>
+            <button on:click={() => deleteVideo(video.video_name)}>Delete</button>
+          </li>
+        {/each}
+      </ul>
+    {:else}
+      <p>No videos available.</p>
+    {/if}
   </div>
   

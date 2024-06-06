@@ -3,7 +3,6 @@
   let password = "";
   let errorMessage = "";
   import { SERVER_URL } from "../../lib/utils";
-  import { onMount } from "svelte";
   
   async function handleSubmit() {
     try {
@@ -50,4 +49,11 @@
     </label>
     <button type="submit">Login</button>
   </form>
+</div>
+
+<div style="display: flex; align-items: center; margin-top: 10px;">
+  <p style="margin: 0;">Don't have an account yet?</p>
+  <a href="/signup" style="color: blue; text-decoration: underline; cursor: pointer; margin-left: 5px;">
+    Sign up here!
+  </a>
 </div>

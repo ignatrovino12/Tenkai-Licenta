@@ -74,4 +74,11 @@
   </form>
 
   </div>
+
+  <div style="display: flex; align-items: center; margin-top: 10px;">
+    <p style="margin: 0;">Already made an account?</p>
+    <a href="/login" style="color: blue; text-decoration: underline; cursor: pointer; margin-left: 5px;">
+      Login here!
+    </a>
+  </div>
   
