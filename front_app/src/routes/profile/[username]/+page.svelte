@@ -16,10 +16,11 @@
     fetchProfilePicture,
     get_cookie,
     deleteComment,
+    handleUpVote,
   } from "../../../lib/utils";
   import { find_closest_waypoint, update_map } from "../../../lib/gpx_utils";
   import type { Waypoint_upload } from "../../../lib/gpx_utils";
-  import type { Comment } from "../../../lib/utils";
+  import type { Comment, Upvote,Video  } from "../../../lib/utils";
 
   let waypoints: Waypoint_upload[] = [];
   let map: L.Map;
@@ -35,7 +36,7 @@
   let comments: Comment[];
   let newComment = "";
   let current_user_picture = "";
-  let username= "";
+  let username = "";
 
   // data from server
   /** @type {import('./$types').PageData} */
@@ -51,7 +52,7 @@
   }
 
   onMount(async () => {
-    username= get_cookie('username');
+    username = get_cookie("username");
     if (typeof window !== "undefined") {
       //gpx window
 
@@ -177,11 +178,9 @@
           const data = await LocationResponse.json();
           city = data.city;
           country = data.country;
-       
-        }
-        else{
-          city="Unknown";
-          country="Unknown";
+        } else {
+          city = "Unknown";
+          country = "Unknown";
           updateInfo(city, country, 0);
         }
       }
@@ -305,10 +304,44 @@
   async function handleDeleteComment(comment: Comment) {
     const success = await deleteComment(comment);
     if (success) {
-      comments = comments.filter(c => c !== comment);
+      comments = comments.filter((c) => c !== comment);
     } else {
-      alert('Failed to delete comment.');
+      alert("Failed to delete comment.");
     }
+  }
+
+  async function handleUpVoteClick(video: Video, videoUser: string) {
+    try {
+      const videoName=video.video_name
+      const success = await handleUpVote(videoName, videoUser);
+      if (success) {
+        // console.log("Upvoted successfully.");
+
+        const existingUpvoteIndex = userData.upvotes.findIndex(
+          (upvote:Upvote) => upvote.video_name === videoName,
+        );
+        if (existingUpvoteIndex !== -1) {
+          // exista deja
+          userData.upvotes.splice(existingUpvoteIndex, 1);
+          video.nr_likes--;
+        } else {
+          // nu exista
+          userData.upvotes.push({ video_name: videoName });
+          video.nr_likes++;
+        }
+        userData.upvotes = [...userData.upvotes];
+      } else {
+        console.error("Failed to upvote.");
+      }
+    } catch (error) {
+      console.error("Error upvoting:", error);
+    }
+  }
+
+  function isUpvoted(videoName: string) {
+    return userData.upvotes.some(
+      (upvote: Upvote) => upvote.video_name === videoName,
+    );
   }
 </script>
 
@@ -348,11 +381,23 @@
           {#each userData.videos as video}
             <li>
               <p>Video name: {video.video_name.replace(".mp4", "")}</p>
-              <p>Country: {video.country ? video.country : "Not found"}</p>
-              <p>City: {video.city ? video.city : "Not found"}</p>
+              <p>Number of likes: {video.nr_likes}</p>
+              <p>Country: {video.country ? video.country : "Unknown"}</p>
+              <p>City: {video.city ? video.city : "Unknown"}</p>
               <button on:click={() => selectVideoName(video.video_name)}
                 >Select</button
               >
+              <button
+                on:click={() =>
+                  handleUpVoteClick(video, userData.username)}
+                class:selected={userData.upvotes.includes(video.video_name)}
+              >
+                {#if isUpvoted(video.video_name)}
+                  <p>Upvoted</p>
+                {:else}
+                  <p>Upvote</p>
+                {/if}
+              </button>
             </li>
           {/each}
         </ul>
@@ -411,9 +456,9 @@
         <p style="display: inline-block; vertical-align: middle;">
           {comment.username} - {timeAgo(comment.timestamp)}
         </p>
-        <p >{comment.comment}</p>
+        <p>{comment.comment}</p>
         {#if username === comment.username}
-          <button on:click={() => handleDeleteComment(comment)} >Delete</button>
+          <button on:click={() => handleDeleteComment(comment)}>Delete</button>
         {/if}
       </div>
     {/each}

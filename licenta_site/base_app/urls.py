@@ -11,5 +11,6 @@ urlpatterns = [
     path('profile/<str:username>', views.profile_view, name='profile'),
     path('display_videos_profile/',views.display_videos_profile, name='display_videos_profile'),
     path('delete_video/',views.delete_video,name='delete_video'),
+    path('upload_upvote/',views.upload_upvote, name='upload_upvote'),
 
 ]

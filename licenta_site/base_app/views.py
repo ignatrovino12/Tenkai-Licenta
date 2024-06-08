@@ -3,12 +3,13 @@ from django.contrib.auth.models import User
 from django.http import JsonResponse
 import json
 import re
+from django.shortcuts import get_object_or_404
 from django.middleware.csrf import get_token
 from .models import UserProfile
 from google.cloud import storage
 from .tasks import update_picture_task
 from datetime import datetime, timedelta
-from gpx_app.models import Video
+from gpx_app.models import Video,Upvote
 
 storage_client = storage.Client()
 bucket_name = "bucket-licenta-rovin"
@@ -200,20 +201,37 @@ def profile_view(request, username):
             )
 
             # videos of the user
-            videos = Video.objects.filter(user_profile=user_profile)
+            videos = Video.objects.filter(user_profile=user_profile).order_by('video_id')
 
             video_data = []
             for video in videos:
                 video_data.append({
                     'video_name': video.video_name,
                     'country': video.country,
-                    'city': video.city
+                    'city': video.city,
+                    'nr_likes': video.nr_likes,
                 })
+
+            # likes/upvotes for the user
+            data = json.loads(request.body)
+            current_username = data.get('username')
+
+            current_user_profile = get_object_or_404(UserProfile, user__username=current_username)
+            upvotes = Upvote.objects.filter(user_profile=current_user_profile, video_id__in=videos)
+            
+   
+            upvotes_to_send = []
+            for upvote in upvotes:
+                upvote_info = {
+                    'video_name': upvote.video_id.video_name,
+                }
+                upvotes_to_send.append(upvote_info)
 
             return JsonResponse({
                 'username': username,
                 'image_link': image_link,
-                'videos': video_data
+                'videos': video_data,
+                'upvotes': upvotes_to_send,
             },status=200)
         
         except User.DoesNotExist:
@@ -295,7 +313,33 @@ def delete_video(request):
         return JsonResponse({'success': False, 'message': 'Only POST requests are allowed'}, status=405)
 
 
+def upload_upvote(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            username = data.get('username')
+            video_name = data.get('video_name')
+            video_user = data.get('video_user')
 
-    
+            user_profile = UserProfile.objects.get(user__username=username)
+            video = Video.objects.get(video_name=video_name, user_profile__user__username=video_user)
 
+            upvote, created = Upvote.objects.get_or_create(user_profile=user_profile, video_id=video)
+
+            if not created:
+                upvote.delete()
+                video.nr_likes -= 1
+                video.save()
+                return JsonResponse({'success': True, 'message': 'Upvote deleted successfully'}, status=200)
+            else:
+                video.nr_likes += 1
+                video.save()
+                return JsonResponse({'success': True, 'message': 'Upvote added successfully'}, status=200)
+            
+
+        except Exception as e:
+            return JsonResponse({'success': False, 'message': str(e)}, status=500)
+
+    else:
+        return JsonResponse({'success': False, 'message': 'Invalid request method'}, status=400)
 

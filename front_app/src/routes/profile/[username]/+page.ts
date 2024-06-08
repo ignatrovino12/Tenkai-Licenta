@@ -21,7 +21,6 @@ export async function load({ params }: { params: { username: string} }) {
                 body: JSON.stringify({
                     username:u,
                     csrf_token: token,
-                    // video_user: username,
                   }),
             });
     

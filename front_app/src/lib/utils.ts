@@ -2,7 +2,7 @@
 import { onDestroy } from 'svelte';
 import { derived } from 'svelte/store';
 
-//INTERFACE 
+//INTERFACES
 
 interface Comment {
     timestamp: string;  
@@ -11,6 +11,16 @@ interface Comment {
     profile_picture: string;
 }
 
+interface Upvote {
+  video_name:string;
+}
+
+interface Video {
+  video_name: string, 
+  country: string, 
+  city: string, 
+  nr_likes: number,
+}
 // FUNCTIONS
 const SERVER_URL = 'http://127.0.0.1:8000';
 
@@ -273,8 +283,37 @@ async function deleteComment(comment: Comment) {
   }
 }
 
+
+async function handleUpVote(videoName:string,videoUser:string) {
+  try {
+    const { username, csrfToken } = get_cookie_values();
+    const response = await fetch(`${SERVER_URL}/upload_upvote/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        username: username,
+        csrf_token: csrfToken,
+        video_name: videoName,
+        video_user : videoUser,
+      }),
+    });
+
+    if (response.ok) {
+      return true
+    } else {
+      console.error('Failed to upvote:', response.statusText);
+      return false
+    }
+  } catch (error) {
+    console.error('Error upvoting:', error);
+    return false
+  }
+}
+
 // EXPORTS
-export { SERVER_URL,get_cookie, get_cookie_values ,logout_user,wait,timeAgo,deleteComment }
+export { SERVER_URL,get_cookie, get_cookie_values ,logout_user,wait,timeAgo,deleteComment,handleUpVote }
 export { is_logged, downloadVideo,watch,handleCommentButton,fetchProfilePicture}
 export {redirectToHome,redirectToLogin,redirectToSignUp,redirectToProfile,redirectToCurrentUserProfile,redirectToUpload}
-export type {Comment}
+export type {Comment,Upvote,Video }
