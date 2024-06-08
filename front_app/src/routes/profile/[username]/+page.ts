@@ -34,7 +34,7 @@ export async function load({ params }: { params: { username: string} }) {
             }
         } catch (e) {
             console.error('Error fetching user profile:', e);
-            throw error(500, `User ${username} not found`);
+            throw error(500, `User ${username} not found or you are not connected currently.`);
         }
     }
     }

@@ -13,6 +13,9 @@
     redirectToUpload,
     handleCommentButton,
     timeAgo,
+    fetchProfilePicture,
+    get_cookie,
+    deleteComment,
   } from "../../../lib/utils";
   import { find_closest_waypoint, update_map } from "../../../lib/gpx_utils";
   import type { Waypoint_upload } from "../../../lib/gpx_utils";
@@ -31,6 +34,8 @@
   let city = "";
   let comments: Comment[];
   let newComment = "";
+  let current_user_picture = "";
+  let username= "";
 
   // data from server
   /** @type {import('./$types').PageData} */
@@ -46,6 +51,7 @@
   }
 
   onMount(async () => {
+    username= get_cookie('username');
     if (typeof window !== "undefined") {
       //gpx window
 
@@ -162,7 +168,7 @@
               username,
               csrf_token: csrfToken,
               video_name: videoName,
-              video_user: username,
+              video_user: userData.username,
             }),
           },
         );
@@ -171,6 +177,12 @@
           const data = await LocationResponse.json();
           city = data.city;
           country = data.country;
+       
+        }
+        else{
+          city="Unknown";
+          country="Unknown";
+          updateInfo(city, country, 0);
         }
       }
 
@@ -265,12 +277,20 @@
     try {
       const success = await handleCommentButton(newComment, videoName);
       if (success) {
-        console.log("Comment submitted successfully.");
-        comments = [...comments, {
-          timestamp: new Date().toISOString(),
-          comment: newComment,
-          username: userData.username,
-        }];
+        if (current_user_picture === "") {
+          const profilePictureData = await fetchProfilePicture();
+          current_user_picture = profilePictureData.profile_picture;
+        }
+
+        comments = [
+          {
+            timestamp: new Date().toISOString(),
+            comment: newComment,
+            username: username,
+            profile_picture: current_user_picture,
+          },
+          ...comments,
+        ];
       } else {
         alert("Failed to submit comment.");
       }
@@ -279,6 +299,15 @@
       newComment = "";
     } catch (error) {
       console.error("Failed to submit comment:", error);
+    }
+  }
+
+  async function handleDeleteComment(comment: Comment) {
+    const success = await deleteComment(comment);
+    if (success) {
+      comments = comments.filter(c => c !== comment);
+    } else {
+      alert('Failed to delete comment.');
     }
   }
 </script>
@@ -308,7 +337,6 @@
     {#if userData}
       <p>Username: {userData.username}</p>
       {#if userData.image_link}
-        <!-- Display the image using the signed URL -->
         <img src={userData.image_link} alt="" />
       {:else}
         <p>User does not have a picture.</p>
@@ -364,22 +392,32 @@
 
 <!-- Display comments -->
 {#if comments}
+  <h2>Comments:</h2>
+  <input
+    type="text"
+    bind:value={newComment}
+    placeholder="Add your comment here"
+  />
+  <button on:click={handleCommentButtonClick}>Submit Comment</button>
   {#if comments.length > 0}
-    <h2>Comments</h2>
+    <p></p>
     {#each comments as comment}
       <div class="comment">
-        <p>Timestamp: {timeAgo(comment.timestamp)}</p>
-        <p>Username: {comment.username}</p>
-        <p>Comment: {comment.comment}</p>
+        <img
+          src={comment.profile_picture}
+          alt=""
+          style="width: 50px; height: 50px; display: inline-block; vertical-align: middle;"
+        />
+        <p style="display: inline-block; vertical-align: middle;">
+          {comment.username} - {timeAgo(comment.timestamp)}
+        </p>
+        <p >{comment.comment}</p>
+        {#if username === comment.username}
+          <button on:click={() => handleDeleteComment(comment)} >Delete</button>
+        {/if}
       </div>
     {/each}
   {:else}
     <p>No comments available.</p>
   {/if}
-  <input
-    type="text"
-    bind:value={newComment}
-    placeholder="Write your comment here"
-  />
-  <button on:click={handleCommentButtonClick}>Submit Comment</button>
 {/if}

@@ -29,7 +29,7 @@ class CSRFMiddleware:
         if username and csrf_token:
             try:
                 user = User.objects.get(username=username)
-                profile, created = UserProfile.objects.get_or_create(user=user)
+                profile = UserProfile.objects.get(user=user)
                 if profile.csrf_token != csrf_token:
                     return JsonResponse({'success': False, 'message': 'Invalid CSRF token'})
             except User.DoesNotExist:

@@ -308,7 +308,7 @@
       <ul>
         {#each videos as video}
           <li>
-            <p>Video Name: {video.video_name.replace('.mp4', '')} - Country: {video.country} , City: {video.city}</p>
+            <p>Video Name: {video.video_name.replace('.mp4', '')} - Country: {video.country || 'Unknown'} , City: {video.city || 'Unknown'}</p>
             <button on:click={() => deleteVideo(video.video_name)}>Delete</button>
           </li>
         {/each}

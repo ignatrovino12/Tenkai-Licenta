@@ -8,6 +8,7 @@ interface Comment {
     timestamp: string;  
     comment: string;
     username: string;
+    profile_picture: string;
 }
 
 // FUNCTIONS
@@ -167,7 +168,6 @@ function wait(ms: number): Promise<void> {
 async function handleCommentButton(newComment:string,videoName:string) {
   const { username, csrfToken } = get_cookie_values();
 
-  console.log("Submitting comment:", newComment);
   const NewCommentResponse = await fetch(`${SERVER_URL}/make_comment/`, {
     method: "POST",
     headers: {
@@ -194,31 +194,87 @@ function timeAgo(timestamp:string) {
 
   let interval = Math.floor(seconds / 31536000);
   
-  if (interval > 1) {
+  if (interval >= 1) {
     return `${interval} years ago`;
   }
   interval = Math.floor(seconds / 2592000);
-  if (interval > 1) {
+  if (interval >= 1) {
     return `${interval} months ago`;
   }
   interval = Math.floor(seconds / 86400);
-  if (interval > 1) {
+  if (interval >= 1) {
     return `${interval} days ago`;
   }
   interval = Math.floor(seconds / 3600);
-  if (interval > 1) {
+  if (interval >= 1) {
     return `${interval} hours ago`;
   }
   interval = Math.floor(seconds / 60);
-  if (interval > 1) {
+  if (interval >= 1) {
     return `${interval} minutes ago`;
   }
   return `${Math.floor(seconds)} seconds ago`;
 }
 
+async function fetchProfilePicture():Promise<{ profile_picture: string }> {
+  try {
+      const { username, csrfToken } = get_cookie_values();
+      const response = await fetch(`${SERVER_URL}/display_profile_picture/`, {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ username: username, csrf_token: csrfToken }),
+      });
+      
+      if (response.ok) {
+          const data = await response.json();
+          if (data.success) {
+
+            return { profile_picture: data.profile_picture };
+          } else {
+              console.error('Failed to fetch profile picture');
+          }
+      } else {
+
+          console.error('Failed to fetch profile picture');
+      }
+  } catch (error) {
+      console.error('Error fetching profile picture:', error);
+  }
+  return { profile_picture: "" };
+}
+
+async function deleteComment(comment: Comment) {
+  try {
+    const { username, csrfToken } = get_cookie_values();
+    const response = await fetch(`${SERVER_URL}/delete_comment/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        username: username,
+        csrf_token: csrfToken,
+        timestamp: comment.timestamp,
+        comment: comment.comment
+      }),
+    });
+    
+    if (response.ok) {
+      return true;
+    } else {
+      console.error('Failed to delete comment:', response.statusText);
+      return false;
+    }
+  } catch (error) {
+    console.error('Error deleting comment:', error);
+    return false;
+  }
+}
 
 // EXPORTS
-export { SERVER_URL,get_cookie, get_cookie_values ,logout_user,wait,timeAgo }
-export { is_logged, downloadVideo,watch,handleCommentButton}
+export { SERVER_URL,get_cookie, get_cookie_values ,logout_user,wait,timeAgo,deleteComment }
+export { is_logged, downloadVideo,watch,handleCommentButton,fetchProfilePicture}
 export {redirectToHome,redirectToLogin,redirectToSignUp,redirectToProfile,redirectToCurrentUserProfile,redirectToUpload}
 export type {Comment}

@@ -190,7 +190,7 @@ def profile_view(request, username):
             # image link for user
             blob = storage_client.bucket(bucket_name).blob(file_path)
             current_datetime = datetime.now()
-            expiration_time = current_datetime + timedelta(hours=4)
+            expiration_time = current_datetime + timedelta(minutes=5)
 
 
             image_link = blob.generate_signed_url(

@@ -12,6 +12,8 @@ from geopy.geocoders import Nominatim
 import geopy
 import time
 from base_app.models import UserProfile
+from django.utils.dateparse import parse_datetime
+from django.utils.timezone import make_aware
 
 
 bucket_name="bucket-licenta-rovin"
@@ -124,14 +126,26 @@ def get_video_by_name(request):
             )
             
             # get comments
-            comments = Comment.objects.filter(video_id__user_profile_id=user_id, video_id__video_name=video_name).select_related('user_profile')
+            comments = Comment.objects.filter(video_id__user_profile_id=user_id, video_id__video_name=video_name).select_related('user_profile').order_by('-timestamp')
 
             comments_to_send = []
+            profile_picture_links = {}
             for comment in comments:
+                
+                username = comment.user_profile.user.username
+
+                # generate image link for every user if it isnt already generated
+                if username not in profile_picture_links:
+
+                    image_link=generate_picture_link(username)
+
+                    profile_picture_links[username] = image_link
+
                 comment_simplified= {
                     'timestamp': comment.timestamp,
                     'comment': comment.comment,
-                    'username': comment.user_profile.user.username
+                    'username': comment.user_profile.user.username,
+                    'profile_picture': profile_picture_links[username],
                 }
                 comments_to_send.append(comment_simplified)
                 
@@ -386,6 +400,94 @@ def make_comment(request):
         except Video.DoesNotExist:
             return JsonResponse({'success': False, 'message': 'Video not found'}, status=400)
 
+        except Exception as e:
+            return JsonResponse({'success': False, 'message': str(e)}, status=500)
+
+    else:
+        return JsonResponse({'success': False, 'message': 'Invalid request method'}, status=400)
+    
+def generate_picture_link(username):
+    try:
+        user = User.objects.get(username=username)
+        user_id=user.id
+        user_profile = UserProfile.objects.get(user=user)
+        has_picture = user_profile.has_picture
+
+        if has_picture:
+            file_path = f'images/{user_id}/ppicture.png'
+        else:
+            file_path = f'images/0/ppicture.png'
+
+
+        blob = storage_client.bucket(bucket_name).blob(file_path)
+        current_datetime = datetime.now()
+        expiration_time = current_datetime + timedelta(minutes=5)
+
+        image_link = blob.generate_signed_url(
+            version='v4',
+            expiration=expiration_time,
+            method='GET',
+        )
+
+        return image_link
+    
+    except Exception as e:
+        return None
+
+
+def display_profile_picture(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            username = data.get('username')
+            
+            profile_picture=generate_picture_link(username)
+
+            return JsonResponse({'success': True, 'profile_picture': profile_picture}, status=200)
+    
+        except Exception as e:
+            return JsonResponse({'success': False, 'message': str(e)}, status=500)
+
+    else:
+        return JsonResponse({'success': False, 'message': 'Invalid request method'}, status=400)
+    
+def delete_comment(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            username = data.get('username')
+            timestamp = data.get('timestamp')
+            comment_text = data.get('comment')
+          
+            # parse and awake timestamp
+            incoming_timestamp = parse_datetime(timestamp)
+            if incoming_timestamp is not None:
+
+                if incoming_timestamp.tzinfo is None:
+                    incoming_timestamp = make_aware(incoming_timestamp)
+
+                user_profile = UserProfile.objects.get(user__username=username)
+
+                comment = Comment.objects.filter(
+                    user_profile=user_profile,
+                    timestamp__date=incoming_timestamp.date(),
+                    timestamp__hour=incoming_timestamp.hour,
+                    timestamp__minute=incoming_timestamp.minute,
+                    timestamp__second=incoming_timestamp.second,
+                    comment=comment_text
+                ).first()
+
+                if comment:
+                    comment.delete()
+                    return JsonResponse({'success': True, 'message': 'Comment deleted successfully'}, status=200)
+                else:
+                    return JsonResponse({'success': False, 'message': 'Comment not found'}, status=404)
+            else:
+                return JsonResponse({'success': False, 'message': 'Invalid timestamp'}, status=400)
+        
+        except UserProfile.DoesNotExist:
+            return JsonResponse({'success': False, 'message': 'User not found'}, status=404)
+    
         except Exception as e:
             return JsonResponse({'success': False, 'message': str(e)}, status=500)
 
