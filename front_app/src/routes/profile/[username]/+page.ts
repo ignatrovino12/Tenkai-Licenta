@@ -27,7 +27,7 @@ export async function load({ params }: { params: { username: string} }) {
     
             if (res.ok) {
                 const user = await res.json();
-                console.log(user)
+                // console.log(user)
                 return { user };
             } else {
                 throw error(res.status, 'User not found');

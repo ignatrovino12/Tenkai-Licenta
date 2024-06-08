@@ -244,6 +244,7 @@ def display_videos_profile(request):
                     'city': video.city
                 })
 
+
             return JsonResponse({'succes':True, 'videos': video_data}, status=200)
         
         except User.DoesNotExist:
@@ -265,9 +266,19 @@ def delete_video(request):
             video_name = data.get('video_name')
             user = User.objects.get(username=username)
             user_profile = UserProfile.objects.get(user=user)
+            user_id=user.id
 
+            # delete DB
             video = Video.objects.get(user_profile=user_profile, video_name=video_name)
             video.delete()
+
+            # delete cloud
+            video_blob = storage_client.bucket(bucket_name).blob(f'uploads/{user_id}/{video_name}')
+            video_blob.delete()
+
+            gpx_name = video_name[:-3] + 'gpx'
+            gpx_blob = storage_client.bucket(bucket_name).blob(f'uploads/{user_id}/{gpx_name}')
+            gpx_blob.delete()
 
             return JsonResponse({'success': True, 'message': 'Video deleted successfully'}, status=200)
         

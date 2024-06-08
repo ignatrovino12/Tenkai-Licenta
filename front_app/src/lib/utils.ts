@@ -2,6 +2,14 @@
 import { onDestroy } from 'svelte';
 import { derived } from 'svelte/store';
 
+//INTERFACE 
+
+interface Comment {
+    timestamp: string;  
+    comment: string;
+    username: string;
+}
+
 // FUNCTIONS
 const SERVER_URL = 'http://127.0.0.1:8000';
 
@@ -76,7 +84,7 @@ async function is_logged(username: string, csrfToken: string): Promise<{ success
     return { success: false, message: 'An error occurred while processing the request' };
   }
 }
-async function downloadVideo(videoName: string,videoUser:string): Promise<{ cloud_videoUrl: string }> {
+async function downloadVideo(videoName: string,videoUser:string): Promise<{ cloud_videoUrl: string, comments_received:Comment[] }> {
   const username = get_cookie('username');
   const csrfToken = get_cookie('csrftoken');
 
@@ -97,6 +105,7 @@ async function downloadVideo(videoName: string,videoUser:string): Promise<{ clou
     if (data.success) {
       return {
         cloud_videoUrl: data.video,
+        comments_received: data.comments,
 
       };
     } else {
@@ -155,7 +164,61 @@ function wait(ms: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+async function handleCommentButton(newComment:string,videoName:string) {
+  const { username, csrfToken } = get_cookie_values();
+
+  console.log("Submitting comment:", newComment);
+  const NewCommentResponse = await fetch(`${SERVER_URL}/make_comment/`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      username,
+      csrf_token: csrfToken,
+      video_name: videoName,
+      new_comment: newComment,
+    }),
+  });
+
+  const data = await NewCommentResponse.json();
+  return data.success
+
+
+}
+
+function timeAgo(timestamp:string) {
+  const now = new Date().getTime();
+  const date = new Date(timestamp).getTime();
+  const seconds = Math.floor((now - date) / 1000);
+
+  let interval = Math.floor(seconds / 31536000);
+  
+  if (interval > 1) {
+    return `${interval} years ago`;
+  }
+  interval = Math.floor(seconds / 2592000);
+  if (interval > 1) {
+    return `${interval} months ago`;
+  }
+  interval = Math.floor(seconds / 86400);
+  if (interval > 1) {
+    return `${interval} days ago`;
+  }
+  interval = Math.floor(seconds / 3600);
+  if (interval > 1) {
+    return `${interval} hours ago`;
+  }
+  interval = Math.floor(seconds / 60);
+  if (interval > 1) {
+    return `${interval} minutes ago`;
+  }
+  return `${Math.floor(seconds)} seconds ago`;
+}
+
+
 // EXPORTS
-export { SERVER_URL,get_cookie, get_cookie_values ,logout_user,wait }
-export { is_logged, downloadVideo,watch}
+export { SERVER_URL,get_cookie, get_cookie_values ,logout_user,wait,timeAgo }
+export { is_logged, downloadVideo,watch,handleCommentButton}
 export {redirectToHome,redirectToLogin,redirectToSignUp,redirectToProfile,redirectToCurrentUserProfile,redirectToUpload}
+export type {Comment}

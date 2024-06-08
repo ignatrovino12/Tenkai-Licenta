@@ -2,18 +2,16 @@ from django.shortcuts  import get_object_or_404
 from django.http import JsonResponse
 from google.cloud import storage
 import json
-from .models import Video
+from .models import Video,Comment,Upvote
 from django.contrib.auth.models import User
 from datetime import datetime, timedelta
 import gpxpy
 from django.utils import timezone
-from celery.result import AsyncResult
-from django.core.files.temp import NamedTemporaryFile
-from django.conf import settings
 from .tasks import process_and_upload_gpx
 from geopy.geocoders import Nominatim
 import geopy
 import time
+from base_app.models import UserProfile
 
 
 bucket_name="bucket-licenta-rovin"
@@ -96,10 +94,9 @@ def get_video_by_name(request):
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
-            username = data.get('video_username')
+            video_username = data.get('video_username')
             video_name = data.get('video_name')
-            user_id = get_user_id_from_username(username)
-            print(username)
+            user_id = get_user_id_from_username(video_username)
 
             if not video_name:
                 return JsonResponse({'success': False, 'message': 'Missing video_name parameter'}, status=400)
@@ -114,6 +111,7 @@ def get_video_by_name(request):
                 return JsonResponse({'success': False, 'message': 'Video name is not associated with the user'}, status=409)
             
             
+            # get video url
             video_blob = storage_client.bucket(bucket_name).blob(f'uploads/{user_id}/{video_name}')
 
             expiration_time = datetime.now() + timedelta(hours=8)
@@ -124,12 +122,28 @@ def get_video_by_name(request):
                 method='GET',
                 # content_type='video/mp4',
             )
-        
+            
+            # get comments
+            comments = Comment.objects.filter(video_id__user_profile_id=user_id, video_id__video_name=video_name).select_related('user_profile')
 
+            comments_to_send = []
+            for comment in comments:
+                comment_simplified= {
+                    'timestamp': comment.timestamp,
+                    'comment': comment.comment,
+                    'username': comment.user_profile.user.username
+                }
+                comments_to_send.append(comment_simplified)
+                
             return JsonResponse({
                 'success': True,
                 'video': video_signed_url,
+                'comments': comments_to_send,
             }, status=200)
+    
+
+
+            
 
         except json.JSONDecodeError:
             return JsonResponse({'success': False, 'message': 'Invalid JSON data'}, status=400)  
@@ -338,6 +352,42 @@ def display_city_country(request):
 
         except json.JSONDecodeError:
                 return JsonResponse({'success': False, 'message': 'Invalid JSON data'}, status=400)
+
+    else:
+        return JsonResponse({'success': False, 'message': 'Invalid request method'}, status=400)
+    
+
+def make_comment(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            video_user = data.get('username')
+            video_name = data.get('video_name')
+            new_comment = data.get('new_comment')
+
+
+            user_profile = UserProfile.objects.get(user__username=video_user)
+            video = Video.objects.get(video_name=video_name)
+
+            Comment.objects.create(
+                video_id=video,
+                user_profile=user_profile,
+                comment=new_comment
+            )
+
+            return JsonResponse({'success': True, 'message': 'Comment created successfully'}, status=200)
+
+        except json.JSONDecodeError:
+            return JsonResponse({'success': False, 'message': 'Invalid JSON data'}, status=400)
+
+        except UserProfile.DoesNotExist:
+            return JsonResponse({'success': False, 'message': 'User profile not found'}, status=400)
+
+        except Video.DoesNotExist:
+            return JsonResponse({'success': False, 'message': 'Video not found'}, status=400)
+
+        except Exception as e:
+            return JsonResponse({'success': False, 'message': str(e)}, status=500)
 
     else:
         return JsonResponse({'success': False, 'message': 'Invalid request method'}, status=400)

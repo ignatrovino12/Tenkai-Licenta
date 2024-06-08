@@ -1,6 +1,5 @@
 <script lang="ts">
   // IMPORTS
-  import { writable } from 'svelte/store';
   import { onMount } from "svelte";
   import {
     get_cookie_values,
@@ -12,9 +11,12 @@
     redirectToSignUp,
     redirectToProfile,
     redirectToUpload,
+    handleCommentButton,
+    timeAgo,
   } from "../../../lib/utils";
   import { find_closest_waypoint, update_map } from "../../../lib/gpx_utils";
   import type { Waypoint_upload } from "../../../lib/gpx_utils";
+  import type { Comment } from "../../../lib/utils";
 
   let waypoints: Waypoint_upload[] = [];
   let map: L.Map;
@@ -25,26 +27,25 @@
   let noWaypointsMarker: any;
   let lastWaypoint: Waypoint_upload;
   let speed = 0;
-  let country= '';
-  let city = '';
+  let country = "";
+  let city = "";
+  let comments: Comment[];
+  let newComment = "";
 
   // data from server
   /** @type {import('./$types').PageData} */
   export let data;
-  const userData =  data.user;
+  const userData = data.user;
 
-  // set selected video 
-  let videoName: string = '';
+  // set selected video
+  let videoName: string = "";
 
-function selectVideoName(name: string) {
-  videoName = name;
-  handleDownload();
-}
+  function selectVideoName(name: string) {
+    videoName = name;
+    handleDownload();
+  }
 
-
-  //
   onMount(async () => {
-
     if (typeof window !== "undefined") {
       //gpx window
 
@@ -56,14 +57,14 @@ function selectVideoName(name: string) {
 
       video.addEventListener("play", () => {
         isPlaying = true;
-    
+
         const updateInterval = 200;
 
         const updateMapFunction = async () => {
           if (!isPlaying) return;
 
           const currentTime = video.currentTime;
-          if (waypoints.length > 0) {
+          if (waypoints && waypoints.length > 0) {
             const currentWaypoint = find_closest_waypoint(
               currentTime,
               waypoints,
@@ -79,8 +80,6 @@ function selectVideoName(name: string) {
             if (lastWaypoint !== currentWaypoint) {
               lastWaypoint = currentWaypoint;
             }
-            // if (speed>1) 
-            // console.log(speed);
             updateInfo(city, country, speed);
           }
         };
@@ -96,7 +95,7 @@ function selectVideoName(name: string) {
           if (!isPlaying) return;
 
           const currentTime = video.currentTime;
-          if (waypoints.length > 0) {
+          if (waypoints && waypoints.length > 0) {
             const currentWaypoint = find_closest_waypoint(
               currentTime,
               waypoints,
@@ -117,9 +116,7 @@ function selectVideoName(name: string) {
         };
 
         intervalId = setInterval(updateMapFunction, updateInterval);
-        
-    });
-
+      });
 
       video.addEventListener("pause", () => {
         isPlaying = false;
@@ -135,45 +132,51 @@ function selectVideoName(name: string) {
     const { username, csrfToken } = get_cookie_values();
 
     try {
-      const { cloud_videoUrl } = await downloadVideo(videoName,userData.username);
+      const { cloud_videoUrl, comments_received } = await downloadVideo(
+        videoName,
+        userData.username,
+      );
 
+      // video
       if (cloud_videoUrl) {
         document.getElementById("video")?.setAttribute("src", cloud_videoUrl);
 
         waypoints = await loadGPXData(username, csrfToken, videoName);
 
         // new speed and waypoints
-        lastWaypoint = waypoints[0];
-        speed = 0;
+        if (waypoints) {
+          lastWaypoint = waypoints[0];
+          speed = 0;
+        }
 
-        // get city and country 
+        // get city and country
 
-      const LocationResponse = await fetch(`${SERVER_URL}/display_city_country/`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        username,
-        csrf_token: csrfToken,
-        video_name: videoName,
-        video_user: username,
-      }),
-    });
+        const LocationResponse = await fetch(
+          `${SERVER_URL}/display_city_country/`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              username,
+              csrf_token: csrfToken,
+              video_name: videoName,
+              video_user: username,
+            }),
+          },
+        );
 
-    if (LocationResponse.ok){
-      const data = await LocationResponse.json();
-      city=data.city;
-      country=data.country;
-    }
-    else {
-      const data = await LocationResponse.json();
-      alert(data.message);
-    
-    }
+        if (LocationResponse.ok) {
+          const data = await LocationResponse.json();
+          city = data.city;
+          country = data.country;
+        }
+      }
 
-    
-        
+      // comments
+      if (comments_received) {
+        comments = comments_received;
       }
     } catch (error) {
       console.error("Error:", error);
@@ -248,18 +251,37 @@ function selectVideoName(name: string) {
     return waypoints;
   }
 
-  async function updateInfo(city: string, country:string, speed: number) {
-            try {
-                document.getElementById('speed')!.innerText = `Speed: ${speed} km/h`;
-                document.getElementById('city')!.innerText = `City: ${city}`;
-                document.getElementById('country')!.innerText = `Country: ${country}`;
-            } catch (error) {
-                console.error('Failed to update info:', error);
-            }
-        }
+  async function updateInfo(city: string, country: string, speed: number) {
+    try {
+      document.getElementById("speed")!.innerText = `Speed: ${speed} km/h`;
+      document.getElementById("city")!.innerText = `City: ${city}`;
+      document.getElementById("country")!.innerText = `Country: ${country}`;
+    } catch (error) {
+      console.error("Failed to update info:", error);
+    }
+  }
 
+  async function handleCommentButtonClick() {
+    try {
+      const success = await handleCommentButton(newComment, videoName);
+      if (success) {
+        console.log("Comment submitted successfully.");
+        comments = [...comments, {
+          timestamp: new Date().toISOString(),
+          comment: newComment,
+          username: userData.username,
+        }];
+      } else {
+        alert("Failed to submit comment.");
+      }
+
+      // Reset the input field after the comment is submitted
+      newComment = "";
+    } catch (error) {
+      console.error("Failed to submit comment:", error);
+    }
+  }
 </script>
-
 
 <head>
   <meta charset="UTF-8" />
@@ -285,45 +307,53 @@ function selectVideoName(name: string) {
   {#if data}
     {#if userData}
       <p>Username: {userData.username}</p>
-    {#if userData.image_link}
-      <!-- Display the image using the signed URL -->
-      <img src={userData.image_link} alt="">
+      {#if userData.image_link}
+        <!-- Display the image using the signed URL -->
+        <img src={userData.image_link} alt="" />
+      {:else}
+        <p>User does not have a picture.</p>
+      {/if}
+
+      <h2>Posts:</h2>
+      {#if userData.videos && userData.videos.length > 0}
+        <ul>
+          {#each userData.videos as video}
+            <li>
+              <p>Video name: {video.video_name.replace(".mp4", "")}</p>
+              <p>Country: {video.country ? video.country : "Not found"}</p>
+              <p>City: {video.city ? video.city : "Not found"}</p>
+              <button on:click={() => selectVideoName(video.video_name)}
+                >Select</button
+              >
+            </li>
+          {/each}
+        </ul>
+      {:else}
+        <p>No posts available.</p>
+      {/if}
     {:else}
-      <p>User does not have a picture.</p>
-    {/if}
-     
-    <h2>Posts:</h2>
-    {#if userData.videos && userData.videos.length > 0}
-      <ul>
-        {#each userData.videos as video}
-          <li>
-            <p>Video name: {video.video_name.replace('.mp4', '')}</p>
-            <p>Country: {video.country ? video.country : 'Not found'}</p>
-            <p>City: {video.city ? video.city : 'Not found'}</p>
-            <button on:click={() => selectVideoName(video.video_name)}>Select</button>
-          </li>
-        {/each}
-      </ul>
-    {:else}
-      <p>No posts available.</p>
-    {/if}
-  {:else}
-    <p>Loading data...</p>
+      <p>Loading data...</p>
     {/if}
   {/if}
 </div>
 
-
 <div id="info" style="display: flex; justify-content: center; gap: 20px;">
-  <p id="speed">Speed: </p>
-  <p id="city">City: </p>
-  <p id="country">Country: </p>
+  <p id="speed">Speed:</p>
+  <p id="city">City:</p>
+  <p id="country">Country:</p>
 </div>
 
 <div style="display: flex; align-items: stretch; justify-content: center;">
-  <div id="map" style="width: 500px; height: 500px; border: 1px solid #000;"></div>
+  <div
+    id="map"
+    style="width: 500px; height: 500px; border: 1px solid #000;"
+  ></div>
 
-  <video id="video" controls style="max-width: 600px; height: 500px; background-color:#3b3b3b;">
+  <video
+    id="video"
+    controls
+    style="max-width: 600px; height: 500px; background-color:#3b3b3b;"
+  >
     <track kind="captions" src={captionsUrl} srclang="en" label="English" />
     {#if cloud_videoUrl}
       <source src={cloud_videoUrl} type="video/mp4" />
@@ -331,3 +361,25 @@ function selectVideoName(name: string) {
     {/if}
   </video>
 </div>
+
+<!-- Display comments -->
+{#if comments}
+  {#if comments.length > 0}
+    <h2>Comments</h2>
+    {#each comments as comment}
+      <div class="comment">
+        <p>Timestamp: {timeAgo(comment.timestamp)}</p>
+        <p>Username: {comment.username}</p>
+        <p>Comment: {comment.comment}</p>
+      </div>
+    {/each}
+  {:else}
+    <p>No comments available.</p>
+  {/if}
+  <input
+    type="text"
+    bind:value={newComment}
+    placeholder="Write your comment here"
+  />
+  <button on:click={handleCommentButtonClick}>Submit Comment</button>
+{/if}

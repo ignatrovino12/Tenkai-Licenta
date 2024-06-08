@@ -9,4 +9,5 @@ urlpatterns = [
     path('upload_video_gpx/',views.upload_video_gpx, name='upload_video_gpx'),
     path('update_city_country/',views.update_city_country, name='update_city_country'),
     path('display_city_country/',views.display_city_country, name='display_city_country'),
+    path('make_comment/',views.make_comment, name='make_comment'),
     ]
