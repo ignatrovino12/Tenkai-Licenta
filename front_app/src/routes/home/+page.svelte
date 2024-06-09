@@ -59,6 +59,7 @@
   let videos: Video[];
   let upvotes: Upvote[];
   
+  
 
   onMount(async () => {
     username = get_cookie("username");
@@ -364,7 +365,9 @@
           upvotes.push({ video_name: videoName });
           video.nr_likes++;
         }
-        upvotes = [...upvotes];
+        // video = { ...video };
+        // upvotes = [...upvotes];
+        return [...videos];
       } else {
         console.error("Failed to upvote.");
       }
@@ -485,6 +488,7 @@
 
   <label for="time_period">Time Period</label>
   <select id="time_period" bind:value={time_period}>
+    <option value="">All time</option>
     <option value="today">Today</option>
     <option value="last_week">Last Week</option>
     <option value="last_month">Last Month</option>
