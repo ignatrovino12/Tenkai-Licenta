@@ -210,6 +210,7 @@ def profile_view(request, username):
                     'country': video.country,
                     'city': video.city,
                     'nr_likes': video.nr_likes,
+                    'description': video.description,
                 })
 
             # likes/upvotes for the user

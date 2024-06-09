@@ -20,6 +20,7 @@ interface Video {
   country: string, 
   city: string, 
   nr_likes: number,
+  description: string,
 }
 // FUNCTIONS
 const SERVER_URL = 'http://127.0.0.1:8000';

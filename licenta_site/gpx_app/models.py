@@ -11,6 +11,7 @@ class Video(models.Model):
     nr_likes = models.IntegerField(default=0) 
     country = models.CharField(max_length=50,default="")
     city = models.CharField(max_length=50,default="")
+    description = models.TextField(max_length=201,default="")
 
     def __str__(self):
         return self.video_name

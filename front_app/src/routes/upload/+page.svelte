@@ -21,6 +21,8 @@
     let selectedGPXName: string;
     let selectedFileName: string;
     let videoName: string;
+    let description='';
+    let description2='';
 
     onMount(async () => {
         const { username: u, csrfToken: token } = get_cookie_values();
@@ -42,6 +44,7 @@
                     username: username,
                     csrf_token: csrfToken,
                     video_name: videoName,
+                    description: description,
                 }),
             });
             const data = await response.json();
@@ -66,6 +69,7 @@
                     username: username,
                     csrf_token: csrfToken,
                     video_name: videoName,
+                    description: description2,
                 }),
             });
             const data = await response.json();
@@ -112,6 +116,12 @@
     }
 
     async function handleFileUpload(event: Event) {
+
+        if (description.length > 200) {
+            alert('Description must be less than 200 characters.');
+            return;
+        }
+
         try {
             await generateSignedUrl_video(selectedFileName);
             if (video_signedUrl) {
@@ -179,6 +189,12 @@
     }
 
     async function handleFileUpload2(event: Event) {
+
+        if (description2.length > 200) {
+            alert('Description must be less than 200 characters.');
+            return;
+        }
+
         try {
             await generateSignedUrl_video_gpx(selectedVideoName);
             if (video_signedUrl) {
@@ -303,6 +319,8 @@
 <form on:submit|preventDefault={handleFileUpload}>
     <label for="File">MP4 Video:</label>
     <input type="file" accept=".mp4" on:change={handleFileChange} />
+    <label for="description">Description (a few words):</label>
+    <textarea id="description" bind:value={description} rows="4" cols="50"></textarea>
     <button type="submit" disabled={!selectedFileName}>Upload</button>
 </form>
 
@@ -326,7 +344,17 @@
             on:change={handleGpxFileChange}
         />
     </div>
+    <label for="description2">Description (a few words):</label>
+    <textarea id="description2" bind:value={description2} rows="4" cols="50"></textarea>
+    <p></p>
     <button type="submit" disabled={!selectedVideoName || !selectedGPXName}
         >Upload</button
     >
+    
 </form>
+
+<style>
+    textarea {
+        resize: none; 
+    }
+</style>

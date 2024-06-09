@@ -381,7 +381,8 @@
           {#each userData.videos as video}
             <li>
               <p>Video name: {video.video_name.replace(".mp4", "")}</p>
-              <p>Number of likes: {video.nr_likes}</p>
+              <p>Description: {video.description}</p>
+              <p>Number of upvotes: {video.nr_likes}</p>
               <p>Country: {video.country ? video.country : "Unknown"}</p>
               <p>City: {video.city ? video.city : "Unknown"}</p>
               <button on:click={() => selectVideoName(video.video_name)}

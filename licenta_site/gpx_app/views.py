@@ -32,8 +32,12 @@ def upload_video(request):
             data = json.loads(request.body)
             username = data.get('username')
             video_name = data.get('video_name')
+            description = data.get('description')
             user_id = get_user_id_from_username(username)
-            
+
+            if len(description) > 200:
+                return JsonResponse({"error": "Description must be less than 200 characters."}, status=400)
+         
             if not (video_name.endswith('.mp4') or video_name.endswith('.MP4')):
                 return JsonResponse({'success': False, 'message': 'File provided is not an mp4'}, status=404)
 
@@ -47,7 +51,7 @@ def upload_video(request):
                 return JsonResponse({'success': False, 'message': 'Video name already associated with the user'}, status=404)
 
             # database creation
-            video = Video.objects.create(video_name=video_name, user_profile_id=user_id, timestamp=timezone.now())
+            video = Video.objects.create(video_name=video_name, user_profile_id=user_id, timestamp=timezone.now(),description=description)
 
             blob = storage_client.bucket(bucket_name).blob(f'uploads/{user_id}/{video_name}')
             current_datetime = datetime.now()
@@ -212,7 +216,11 @@ def upload_video_gpx(request):
             data = json.loads(request.body)
             username = data.get('username')
             video_name = data.get('video_name')
+            description = data.get('description')
             user_id = get_user_id_from_username(username)
+
+            if len(description) > 200:
+                return JsonResponse({"error": "Description must be less than 200 characters."}, status=400)
             
             if not (video_name.endswith('.mp4') or video_name.endswith('.MP4')):
                 return JsonResponse({'success': False, 'message': 'File provided is not an mp4'}, status=404)
@@ -227,7 +235,7 @@ def upload_video_gpx(request):
                 return JsonResponse({'success': False, 'message': 'Video name already associated with the user'}, status=404)
 
             # database creation
-            video = Video.objects.create(video_name=video_name, user_profile_id=user_id, timestamp=timezone.now())
+            video = Video.objects.create(video_name=video_name, user_profile_id=user_id, timestamp=timezone.now(), description = description )
 
             video_blob = storage_client.bucket(bucket_name).blob(f'uploads/{user_id}/{video_name}')
             current_datetime = datetime.now()
