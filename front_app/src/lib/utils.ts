@@ -21,6 +21,8 @@ interface Video {
   city: string, 
   nr_likes: number,
   description: string,
+  image_link: string,
+  username: string,
 }
 
 interface User {

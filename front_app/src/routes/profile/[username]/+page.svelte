@@ -375,7 +375,7 @@
         <p>User does not have a picture.</p>
       {/if}
 
-      <h2>Posts:</h2>
+      <h2>Videos:</h2>
       {#if userData.videos && userData.videos.length > 0}
         <ul>
           {#each userData.videos as video}
@@ -403,7 +403,7 @@
           {/each}
         </ul>
       {:else}
-        <p>No posts available.</p>
+        <p>No videos available.</p>
       {/if}
     {:else}
       <p>Loading data...</p>

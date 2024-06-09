@@ -16,10 +16,16 @@
     redirectToProfile,
     redirectToUpload,
     redirectToUserProfile,
+    handleUpVote,
+    get_cookie,
+    handleCommentButton,
+    deleteComment,
+    fetchProfilePicture,
+    timeAgo,
   } from "../../lib/utils";
   import { find_closest_waypoint, update_map } from "../../lib/gpx_utils";
   import type { Waypoint_upload } from "../../lib/gpx_utils";
-  import type { User } from "../../lib/utils";
+  import type { User, Video, Upvote, Comment } from "../../lib/utils";
 
   let waypoints: Waypoint_upload[] = [];
   let map: L.Map;
@@ -33,6 +39,11 @@
   let speed = 0;
   let country = "";
   let city = "";
+  let comments: Comment[];
+  let newComment = "";
+  let username= "";
+  let current_user_picture = "";
+  let show_videos= true;
 
   // search users
   let name = "";
@@ -40,8 +51,18 @@
   let is_ascending = false;
   let user_data: User[];
 
+  // search videos
+  let video_name = "";
+  let order_by_video = "time";
+  let is_ascending_video = false;
+  let time_period = "";
+  let videos: Video[];
+  let upvotes: Upvote[];
+  
+
   onMount(async () => {
-    const { username, csrfToken } = get_cookie_values();
+    username = get_cookie("username");
+    const csrfToken =get_cookie('csrftoken');
     const response = await is_logged(username, csrfToken);
 
     if (typeof window !== "undefined") {
@@ -125,25 +146,26 @@
     }
   });
 
-  async function handleDownload(event: Event) {
-    const form = event.target as HTMLFormElement;
-    videoName = form.videoName.value;
-    if (!videoName.endsWith(".mp4")) {
-      videoName += ".mp4";
-    }
+  async function handleDownload(video_user: string) {
     const { username, csrfToken } = get_cookie_values();
 
     try {
-      const { cloud_videoUrl } = await downloadVideo(videoName, username);
+      const { cloud_videoUrl, comments_received } = await downloadVideo(
+        videoName,
+        video_user,
+      );
 
+      // video
       if (cloud_videoUrl) {
         document.getElementById("video")?.setAttribute("src", cloud_videoUrl);
 
-        waypoints = await loadGPXData(username, csrfToken, videoName);
+        waypoints = await loadGPXData(video_user, csrfToken, videoName);
 
         // new speed and waypoints
-        lastWaypoint = waypoints[0];
-        speed = 0;
+        if (waypoints) {
+          lastWaypoint = waypoints[0];
+          speed = 0;
+        }
 
         // get city and country
 
@@ -158,7 +180,7 @@
               username,
               csrf_token: csrfToken,
               video_name: videoName,
-              video_user: username,
+              video_user: video_user,
             }),
           },
         );
@@ -168,9 +190,15 @@
           city = data.city;
           country = data.country;
         } else {
-          const data = await LocationResponse.json();
-          alert(data.message);
+          city = "Unknown";
+          country = "Unknown";
+          updateInfo(city, country, 0);
         }
+      }
+
+      // comments
+      if (comments_received) {
+        comments = comments_received;
       }
     } catch (error) {
       console.error("Error:", error);
@@ -178,11 +206,12 @@
   }
 
   async function loadGPXData(
-    username: string,
+    video_user: string,
     csrfToken: string,
     videoName: string,
   ) {
     const L = await import("leaflet");
+    const username  = get_cookie("username");
 
     // Initialize the map if it hasn't been initialized yet
     if (!map) {
@@ -203,7 +232,7 @@
         username,
         csrf_token: csrfToken,
         video_name: videoName,
-        video_user: username,
+        video_user: video_user,
       }),
     });
 
@@ -274,12 +303,117 @@
     if (response.ok) {
       const data = await response.json();
       user_data = data;
+      show_videos = false;
+    } else {
+      console.error("Failed to search users");
+    }
+  }
+
+  async function handleVideosSubmit(event: Event) {
+    event.preventDefault();
+    const { username, csrfToken } = get_cookie_values();
+    const response = await fetch(`${SERVER_URL}/display_search_videos/`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        username,
+        csrf_token: csrfToken,
+        video_name,
+        order_by: order_by_video,
+        is_ascending: is_ascending_video,
+        time_period,
+      }),
+    });
+    if (response.ok) {
+      const data = await response.json();
+      videos = data.videos;
+      upvotes = data.upvotes;
+      show_videos = true;
+      // console.log(videos)
+      // console.log(upvotes)
     } else {
       console.error("Failed to search users");
     }
   }
 
   function no_keypress() {}
+
+  function selectVideoName(name: string, video_user: string) {
+    videoName = name;
+    handleDownload(video_user);
+  }
+
+  async function handleUpVoteClick(video: Video, videoUser: string) {
+    try {
+      const videoName = video.video_name;
+      const success = await handleUpVote(videoName, videoUser);
+      if (success) {
+        // console.log("Upvoted successfully.");
+
+        const existingUpvoteIndex = upvotes.findIndex(
+          (upvote: Upvote) => upvote.video_name === videoName,
+        );
+        if (existingUpvoteIndex !== -1) {
+          // exista deja
+          upvotes.splice(existingUpvoteIndex, 1);
+          video.nr_likes--;
+        } else {
+          // nu exista
+          upvotes.push({ video_name: videoName });
+          video.nr_likes++;
+        }
+        upvotes = [...upvotes];
+      } else {
+        console.error("Failed to upvote.");
+      }
+    } catch (error) {
+      console.error("Error upvoting:", error);
+    }
+  }
+
+  function isUpvoted(videoName: string) {
+    return upvotes.some((upvote: Upvote) => upvote.video_name === videoName);
+  }
+
+  async function handleCommentButtonClick() {
+    try {
+      const success = await handleCommentButton(newComment, videoName);
+      if (success) {
+        if (current_user_picture === "") {
+          const profilePictureData = await fetchProfilePicture();
+          current_user_picture = profilePictureData.profile_picture;
+        }
+
+        comments = [
+          {
+            timestamp: new Date().toISOString(),
+            comment: newComment,
+            username: username,
+            profile_picture: current_user_picture,
+          },
+          ...comments,
+        ];
+      } else {
+        alert("Failed to submit comment.");
+      }
+
+      // Reset the input field after the comment is submitted
+      newComment = "";
+    } catch (error) {
+      console.error("Failed to submit comment:", error);
+    }
+  }
+
+  async function handleDeleteComment(comment: Comment) {
+    const success = await deleteComment(comment);
+    if (success) {
+      comments = comments.filter((c) => c !== comment);
+    } else {
+      alert("Failed to delete comment.");
+    }
+  }
 </script>
 
 <head>
@@ -305,6 +439,7 @@
 <h2>Home page</h2>
 
 <!-- Search for users -->
+<h3>Search users</h3>
 <form on:submit={handleUsersSubmit}>
   <label for="name">Name:</label>
   <input type="text" id="name" bind:value={name} />
@@ -328,14 +463,40 @@
 </form>
 
 <!-- Search for videos -->
-<form on:submit|preventDefault={handleDownload}>
-  <label for="videoName">Video Name:</label>
-  <input type="text" id="videoName" name="videoName" required />
-  <button type="submit">Upload</button>
+<h3>Search videos</h3>
+<form on:submit|preventDefault={handleVideosSubmit}>
+  <label for="video_name">Video Name</label>
+  <input id="video_name" type="text" bind:value={video_name} />
+
+  <label for="order_by_video">Order By</label>
+  <select id="order_by_video" bind:value={order_by_video}>
+    <option value="time">Time</option>
+    <option value="nr_upvotes">Number of Upvotes</option>
+  </select>
+
+  <div>
+    <label>
+      <input type="radio" bind:group={is_ascending_video} value={true} /> Ascending
+    </label>
+    <label>
+      <input type="radio" bind:group={is_ascending_video} value={false} /> Descending
+    </label>
+  </div>
+
+  <label for="time_period">Time Period</label>
+  <select id="time_period" bind:value={time_period}>
+    <option value="today">Today</option>
+    <option value="last_week">Last Week</option>
+    <option value="last_month">Last Month</option>
+    <option value="last_year">Last Year</option>
+  </select>
+
+  <button type="submit">Submit</button>
 </form>
 
 <!-- Display users -->
-{#if user_data}
+{#if user_data && !show_videos}
+  <h3>Users</h3>
   {#each user_data as user, index}
     <div>
       <div
@@ -358,6 +519,57 @@
     </div>
   {/each}
 {/if}
+
+<!-- Display Videos -->
+<div>
+
+  {#if videos && upvotes && videos.length > 0 && show_videos}
+  <h3>Videos:</h3>
+    <ul>
+      {#each videos as video}
+        <li>
+          <div
+            role="button"
+            tabindex="0"
+            on:click={() => redirectToUserProfile(video.username)}
+            on:keypress={no_keypress}
+            style="cursor: pointer; max-width: 250px;"
+          >
+            <img
+              src={video.image_link}
+              alt={video.username}
+              style="width: 50px; height: 50px; display: inline-block; vertical-align: middle;"
+            />
+            <h3 style="display: inline-block; vertical-align: middle;">
+              {video.username}
+            </h3>
+          </div>
+          <p>Video name: {video.video_name.replace(".mp4", "")}</p>
+          <p>Description: {video.description}</p>
+          <p>Number of upvotes: {video.nr_likes}</p>
+          <p>Country: {video.country ? video.country : "Unknown"}</p>
+          <p>City: {video.city ? video.city : "Unknown"}</p>
+          <button
+            on:click={() => selectVideoName(video.video_name, video.username)}
+            >Select</button
+          >
+          <button
+            on:click={() => handleUpVoteClick(video, video.username)}
+            class:selected={upvotes.some(
+              (upvote) => upvote.video_name === video.video_name,
+            )}
+          >
+            {#if isUpvoted(video.video_name)}
+              <p>Upvoted</p>
+            {:else}
+              <p>Upvote</p>
+            {/if}
+          </button>
+        </li>
+      {/each}
+    </ul>
+  {/if}
+</div>
 
 <!-- Map and Video -->
 <div id="info" style="display: flex; justify-content: center; gap: 20px;">
@@ -384,3 +596,35 @@
     {/if}
   </video>
 </div>
+
+<!-- Display comments -->
+{#if comments}
+  <h2>Comments:</h2>
+  <input
+    type="text"
+    bind:value={newComment}
+    placeholder="Add your comment here"
+  />
+  <button on:click={handleCommentButtonClick}>Submit Comment</button>
+  {#if comments.length > 0}
+    <p></p>
+    {#each comments as comment}
+      <div class="comment">
+        <img
+          src={comment.profile_picture}
+          alt=""
+          style="width: 50px; height: 50px; display: inline-block; vertical-align: middle;"
+        />
+        <p style="display: inline-block; vertical-align: middle;">
+          {comment.username} - {timeAgo(comment.timestamp)}
+        </p>
+        <p>{comment.comment}</p>
+        {#if username === comment.username}
+          <button on:click={() => handleDeleteComment(comment)}>Delete</button>
+        {/if}
+      </div>
+    {/each}
+  {:else}
+    <p>No comments available.</p>
+  {/if}
+{/if}

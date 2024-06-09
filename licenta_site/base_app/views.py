@@ -12,6 +12,8 @@ from datetime import datetime, timedelta
 from gpx_app.models import Video,Upvote
 from django.db.models import Count, Sum, Value
 from django.db.models.functions import Coalesce
+from django.utils import timezone
+from datetime import timedelta
 
 storage_client = storage.Client()
 bucket_name = "bucket-licenta-rovin"
@@ -414,6 +416,7 @@ def display_search_users(request):
                     'image_link': image_link
                 })
 
+
             return JsonResponse(user_profiles_list, safe=False, status=200) 
 
         
@@ -423,3 +426,102 @@ def display_search_users(request):
     else:
         return JsonResponse({'success': False, 'message': 'Invalid request method'}, status=400)
 
+def display_search_videos(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            video_name = data.get('video_name')
+            order_by = data.get('order_by','time')
+            is_ascending = data.get('is_ascending',False) 
+            time_period = data.get('time_period')
+            username=data.get('username')
+
+            print(order_by)
+
+            if order_by not in ['time', 'nr_upvotes']:
+                return JsonResponse({"error": "Invalid order_by field."}, status=400) 
+                
+            if time_period not in ['today', 'last_week','last_month','last_year','']:
+                return JsonResponse({"error": "time_period field."}, status=400) 
+            
+
+            # filter by name
+            videos = Video.objects.filter(video_name__startswith=video_name)
+
+            # filter by time period
+            now = timezone.now()
+            if time_period == 'today':
+                start_time = now - timedelta(days=1)
+            elif time_period == 'last_week':
+                start_time = now - timedelta(weeks=1)
+            elif time_period == 'last_month':
+                start_time = now - timedelta(days=30)
+            elif time_period == 'last_year':
+                start_time = now - timedelta(days=365)
+            else:
+                start_time = None
+            
+            if start_time:
+                videos = videos.filter(timestamp__gte=start_time)
+
+            # determine order
+            if (is_ascending):
+                order_prefix = ''
+            else:
+                order_prefix = '-'
+
+            # filter time or nr_upvotes
+            if order_by == "time":
+                videos = videos.order_by(f'{order_prefix}timestamp')
+            if order_by == 'nr_upvotes':
+                 videos = videos.order_by(f'{order_prefix}nr_likes')
+
+            # add image link 
+            video_data = []
+            for video in videos:
+                user_profile = video.user_profile
+
+                if user_profile.has_picture:
+                    file_path = f'images/{user_profile.user.id}/ppicture.png'
+                else:
+                    file_path = 'images/0/ppicture.png'
+
+                # Generate signed URL
+                blob = storage_client.bucket(bucket_name).blob(file_path)
+                current_datetime = datetime.now()
+                expiration_time = current_datetime + timedelta(minutes=5)
+                image_link = blob.generate_signed_url(
+                    version='v4',
+                    expiration=expiration_time,
+                    method='GET',
+                )
+
+                video_data.append({
+                    'video_name': video.video_name,
+                    'country': video.country,
+                    'city': video.city,
+                    'nr_likes': video.nr_likes,
+                    'description': video.description,
+                    'image_link': image_link,
+                    'username': user_profile.user.username
+                })
+
+            # send upvotes
+            current_user_profile = get_object_or_404(UserProfile, user__username=username)
+            upvotes = Upvote.objects.filter(user_profile=current_user_profile, video_id__in=videos)  
+   
+            upvotes_to_send = []
+            for upvote in upvotes:
+                upvote_info = {
+                    'video_name': upvote.video_id.video_name,
+                }
+                upvotes_to_send.append(upvote_info)
+
+            return JsonResponse({'succes':True, 'videos': video_data, 'upvotes':upvotes_to_send}, status=200)
+
+
+        except Exception as e:
+                return JsonResponse({'success': False, 'message': str(e)}, status=500)
+
+    else:
+        return JsonResponse({'success': False, 'message': 'Invalid request method'}, status=400)
