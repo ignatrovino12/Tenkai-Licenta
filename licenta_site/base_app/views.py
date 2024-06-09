@@ -10,6 +10,8 @@ from google.cloud import storage
 from .tasks import update_picture_task
 from datetime import datetime, timedelta
 from gpx_app.models import Video,Upvote
+from django.db.models import Count, Sum, Value
+from django.db.models.functions import Coalesce
 
 storage_client = storage.Client()
 bucket_name = "bucket-licenta-rovin"
@@ -338,6 +340,83 @@ def upload_upvote(request):
                 return JsonResponse({'success': True, 'message': 'Upvote added successfully'}, status=200)
             
 
+        except Exception as e:
+            return JsonResponse({'success': False, 'message': str(e)}, status=500)
+
+    else:
+        return JsonResponse({'success': False, 'message': 'Invalid request method'}, status=400)
+
+def display_search_users(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            name = data.get('name')
+            order_by = data.get('order_by','nr_videos')
+            is_ascending = data.get('is_ascending',False)     
+
+            if order_by not in ['nr_videos', 'nr_upvotes']:
+                return JsonResponse({"error": "Invalid order_by field."}, status=400) 
+
+            # determine order
+            if (is_ascending):
+                order_prefix = ''
+            else:
+                order_prefix = '-'
+
+            user_profiles = UserProfile.objects.filter(user__username__startswith=name)
+
+            # find total number of videos/ upvotes per user
+            user_profiles = user_profiles.annotate(
+                nr_videos=Count('video')
+            )
+
+            user_profiles = user_profiles.annotate(
+                nr_upvotes=Coalesce(Sum('video__nr_likes'), Value(0))
+            )
+
+            # order data accordingly
+            if order_by == 'nr_videos':
+                user_profiles = user_profiles.order_by(f"{order_prefix}nr_videos")
+            elif order_by == 'nr_upvotes':
+                user_profiles = user_profiles.order_by(f"{order_prefix}nr_upvotes")
+          
+
+            user_profiles_list = []
+        
+            for user_profile in user_profiles:
+                
+                # generate image links
+                if user_profile.has_picture:
+                    file_path = f'images/{user_profile.user.id}/ppicture.png'
+                else:
+                    file_path = 'images/0/ppicture.png'
+
+                blob = storage_client.bucket(bucket_name).blob(file_path)
+                current_datetime = datetime.now()
+                expiration_time = current_datetime + timedelta(minutes=5)
+
+                image_link = blob.generate_signed_url(
+                    version='v4',
+                    expiration=expiration_time,
+                    method='GET',
+                )
+
+                nr_videos = getattr(user_profile, 'nr_videos', 0)
+                if(nr_videos==0):
+                    nr_upvotes = 0
+                else:
+                    nr_upvotes = getattr(user_profile, 'nr_upvotes', 0)
+
+                user_profiles_list.append({
+                    'name': user_profile.user.username,
+                    'nr_videos': nr_videos,
+                    'nr_upvotes':  nr_upvotes,
+                    'image_link': image_link
+                })
+
+            return JsonResponse(user_profiles_list, safe=False, status=200) 
+
+        
         except Exception as e:
             return JsonResponse({'success': False, 'message': str(e)}, status=500)
 

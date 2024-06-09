@@ -15,9 +15,11 @@
     redirectToSignUp,
     redirectToProfile,
     redirectToUpload,
+    redirectToUserProfile,
   } from "../../lib/utils";
   import { find_closest_waypoint, update_map } from "../../lib/gpx_utils";
   import type { Waypoint_upload } from "../../lib/gpx_utils";
+  import type { User } from "../../lib/utils";
 
   let waypoints: Waypoint_upload[] = [];
   let map: L.Map;
@@ -32,13 +34,18 @@
   let country = "";
   let city = "";
 
+  // search users
+  let name = "";
+  let order_by = "nr_videos";
+  let is_ascending = false;
+  let user_data: User[];
+
   onMount(async () => {
     const { username, csrfToken } = get_cookie_values();
     const response = await is_logged(username, csrfToken);
 
     if (typeof window !== "undefined") {
       //gpx window
-
 
       //video window
       video = document.getElementById("video") as HTMLVideoElement;
@@ -106,8 +113,7 @@
         };
 
         intervalId = setInterval(updateMapFunction, updateInterval);
-        
-    });
+      });
 
       video.addEventListener("pause", () => {
         isPlaying = false;
@@ -128,7 +134,7 @@
     const { username, csrfToken } = get_cookie_values();
 
     try {
-      const { cloud_videoUrl } = await downloadVideo(videoName,username);
+      const { cloud_videoUrl } = await downloadVideo(videoName, username);
 
       if (cloud_videoUrl) {
         document.getElementById("video")?.setAttribute("src", cloud_videoUrl);
@@ -161,7 +167,6 @@
           const data = await LocationResponse.json();
           city = data.city;
           country = data.country;
-
         } else {
           const data = await LocationResponse.json();
           alert(data.message);
@@ -249,6 +254,32 @@
       console.error("Failed to update info:", error);
     }
   }
+
+  async function handleUsersSubmit(event: Event) {
+    event.preventDefault();
+    const { username, csrfToken } = get_cookie_values();
+    const response = await fetch(`${SERVER_URL}/display_search_users/`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        username,
+        csrf_token: csrfToken,
+        name,
+        order_by,
+        is_ascending,
+      }),
+    });
+    if (response.ok) {
+      const data = await response.json();
+      user_data = data;
+    } else {
+      console.error("Failed to search users");
+    }
+  }
+
+  function no_keypress() {}
 </script>
 
 <head>
@@ -273,12 +304,62 @@
 
 <h2>Home page</h2>
 
+<!-- Search for users -->
+<form on:submit={handleUsersSubmit}>
+  <label for="name">Name:</label>
+  <input type="text" id="name" bind:value={name} />
+
+  <label for="order_by">Order By:</label>
+  <select id="order_by" bind:value={order_by}>
+    <option value="nr_videos">Number of Videos</option>
+    <option value="nr_upvotes">Number of Upvotes</option>
+  </select>
+
+  <div>
+    <label>
+      <input type="radio" bind:group={is_ascending} value={true} /> Ascending
+    </label>
+    <label>
+      <input type="radio" bind:group={is_ascending} value={false} /> Descending
+    </label>
+  </div>
+
+  <button type="submit">Search</button>
+</form>
+
+<!-- Search for videos -->
 <form on:submit|preventDefault={handleDownload}>
   <label for="videoName">Video Name:</label>
   <input type="text" id="videoName" name="videoName" required />
   <button type="submit">Upload</button>
 </form>
 
+<!-- Display users -->
+{#if user_data}
+  {#each user_data as user, index}
+    <div>
+      <div
+        role="button"
+        tabindex="0"
+        on:click={() => redirectToUserProfile(user.name)}
+        on:keypress={no_keypress}
+        style="cursor: pointer; max-width: 250px;"
+      >
+        <img
+          src={user.image_link}
+          alt={user.name}
+          style="width: 50px; height: 50px; display: inline-block; vertical-align: middle;"
+        />
+        <h3 style="display: inline-block; vertical-align: middle;">
+          {user.name}
+        </h3>
+      </div>
+      <p>Videos: {user.nr_videos} Upvotes: {user.nr_upvotes}</p>
+    </div>
+  {/each}
+{/if}
+
+<!-- Map and Video -->
 <div id="info" style="display: flex; justify-content: center; gap: 20px;">
   <p id="speed">Speed:</p>
   <p id="city">City:</p>

@@ -22,6 +22,13 @@ interface Video {
   nr_likes: number,
   description: string,
 }
+
+interface User {
+  name: string,
+  nr_videos: number,
+  nr_upvotes : number,
+  image_link : string,
+}
 // FUNCTIONS
 const SERVER_URL = 'http://127.0.0.1:8000';
 
@@ -172,6 +179,11 @@ function redirectToCurrentUserProfile() {
   window.location.href =`/profile/${username}`; 
 }
 
+
+function redirectToUserProfile(username:string) {
+  window.location.href =`/profile/${username}`; 
+}
+
 function wait(ms: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
@@ -316,5 +328,5 @@ async function handleUpVote(videoName:string,videoUser:string) {
 // EXPORTS
 export { SERVER_URL,get_cookie, get_cookie_values ,logout_user,wait,timeAgo,deleteComment,handleUpVote }
 export { is_logged, downloadVideo,watch,handleCommentButton,fetchProfilePicture}
-export {redirectToHome,redirectToLogin,redirectToSignUp,redirectToProfile,redirectToCurrentUserProfile,redirectToUpload}
-export type {Comment,Upvote,Video }
+export {redirectToHome,redirectToLogin,redirectToSignUp,redirectToProfile,redirectToCurrentUserProfile,redirectToUpload,redirectToUserProfile}
+export type {Comment,Upvote,Video,User }
