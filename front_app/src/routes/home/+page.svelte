@@ -347,34 +347,31 @@
   }
 
   async function handleUpVoteClick(video: Video, videoUser: string) {
-    try {
-      const videoName = video.video_name;
-      const success = await handleUpVote(videoName, videoUser);
-      if (success) {
-        // console.log("Upvoted successfully.");
-
-        const existingUpvoteIndex = upvotes.findIndex(
-          (upvote: Upvote) => upvote.video_name === videoName,
-        );
-        if (existingUpvoteIndex !== -1) {
-          // exista deja
-          upvotes.splice(existingUpvoteIndex, 1);
-          video.nr_likes--;
-        } else {
-          // nu exista
-          upvotes.push({ video_name: videoName });
-          video.nr_likes++;
-        }
-        // video = { ...video };
-        // upvotes = [...upvotes];
-        return [...videos];
+  try {
+    const videoName = video.video_name;
+    const success = await handleUpVote(videoName, videoUser);
+    if (success) {
+      const videoIndex = videos.findIndex((v) => v.video_name === videoName);
+      const existingUpvoteIndex = upvotes.findIndex(
+        (upvote: Upvote) => upvote.video_name === videoName,
+      );
+      if (existingUpvoteIndex !== -1) {
+        // exista deja
+        videos[videoIndex] = {...videos[videoIndex], nr_likes: videos[videoIndex].nr_likes - 1};
+        upvotes = [...upvotes.slice(0, existingUpvoteIndex), ...upvotes.slice(existingUpvoteIndex + 1)];
       } else {
-        console.error("Failed to upvote.");
+        // nu exista
+        videos[videoIndex] = {...videos[videoIndex], nr_likes: videos[videoIndex].nr_likes + 1};
+        upvotes = [...upvotes, { video_name: videoName }];
       }
-    } catch (error) {
-      console.error("Error upvoting:", error);
+    } else {
+      console.error("Failed to upvote.");
     }
+  } catch (error) {
+    console.error("Error upvoting:", error);
   }
+}
+
 
   function isUpvoted(videoName: string) {
     return upvotes.some((upvote: Upvote) => upvote.video_name === videoName);
