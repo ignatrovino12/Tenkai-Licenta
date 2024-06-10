@@ -37,8 +37,7 @@
         }
 
         const isBrowser = typeof window !== "undefined";
-
-        // If sessionStorage is available, retrieve profile picture URL
+        
         if (isBrowser) {
             profilePicture = sessionStorage.getItem("profile_picture") || "";
         }
