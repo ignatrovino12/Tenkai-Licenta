@@ -43,10 +43,22 @@
 
 <div class="min-h-screen flex items-center justify-center bg-gradient-to-r from-cyan-400 to-green-400">
   <div class="bg-white rounded-lg shadow-md w-full max-w-6xl flex overflow-hidden">
-    <!-- Left Section with Photo -->
-    <div class="hidden md:block w-1/2 bg-cover bg-center" style="background-image: url('landscape.png');height: 600px;"></div>
+
+    <!-- Left Section with image -->
+    <div class="hidden md:block w-1/2 bg-cover bg-center relative" style="background-image: url('landscape.png');height: 600px;">
+      <div class="absolute inset-0 bg-teal-100 bg-opacity-50"></div>
+      <div class="absolute inset-0 flex flex-col items-center justify-center">
+        <h2 class="text-3xl text-indigo-600 font-bold mb-4 text-center outline-black-outline-title">Welcome to Tenkai</h2>
+        <p class="text-indigo-600 text-lg text-center outline-black-outline">
+          Whether you’re hiking in the mountains, cycling through the city, or exploring unknown territories, 
+          Tenkai allows you to capture these moments and share them with the world. Connect with people, discover new places, 
+          and embark on a digital adventure like no other.
+        </p>
+      </div>
+    </div>
+
     
-    <!-- Right Section with Login Form -->
+    <!-- Right Section with login form -->
     <div class="w-full md:w-1/2 p-8 md:p-12 lg:p-16 flex flex-col justify-center">
       <h1 class="text-3xl font-bold mb-8 text-gray-900 text-center">Login</h1>
       {#if errorMessage}

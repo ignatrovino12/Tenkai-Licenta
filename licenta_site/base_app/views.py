@@ -64,6 +64,12 @@ def user_signup(request):
         
         if password != password_verify:
             return JsonResponse({'success': False, 'message': 'Passwords do not match'}, status=400)
+
+        if re.search(r'\s', username):
+            return JsonResponse({'success': False, 'message': 'Username should not contain spaces'}, status=400)
+        
+        if re.search(r'\s', password):
+            return JsonResponse({'success': False, 'message': 'Password should not contain spaces'}, status=400)
         
         if len(username)<6 or len(username)>30:
             return JsonResponse({'success': False, 'message': 'Username should have between 6 and 30 characters'}, status=400)
