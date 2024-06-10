@@ -278,7 +278,7 @@
       const success = await handleCommentButton(newComment, videoName);
       if (success) {
         if (current_user_picture === "") {
-          const profilePictureData = await fetchProfilePicture();
+          const profilePictureData = await fetchProfilePicture("not_start");
           current_user_picture = profilePictureData.profile_picture;
         }
 

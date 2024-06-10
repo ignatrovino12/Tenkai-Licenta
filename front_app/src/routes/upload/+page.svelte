@@ -10,7 +10,7 @@
         redirectToProfile,
         redirectToUpload,
         logout_user,
-        wait,
+        fetchProfilePicture,
     } from "../../lib/utils";
     import "../../app.css";
 
@@ -22,8 +22,11 @@
     let selectedGPXName: string;
     let selectedFileName: string;
     let videoName: string;
-    let description='';
-    let description2='';
+    let description = "";
+    let description2 = "";
+    let profilePicture = "";
+    let uploading = false;
+    let uploading2 = false;
 
     onMount(async () => {
         const { username: u, csrfToken: token } = get_cookie_values();
@@ -31,6 +34,13 @@
         if (response) {
             username = u;
             csrfToken = token;
+        }
+
+        const isBrowser = typeof window !== "undefined";
+
+        // If sessionStorage is available, retrieve profile picture URL
+        if (isBrowser) {
+            profilePicture = sessionStorage.getItem("profile_picture") || "";
         }
     });
 
@@ -52,10 +62,14 @@
             if (response.ok) {
                 video_signedUrl = data.signed_url;
             } else {
+                const message = data.message;
                 console.error("Failed to generate signed URL.");
+                alert(message);
+                uploading=false;
             }
         } catch (error) {
             console.error("Error:", error);
+            uploading=false;
         }
     }
 
@@ -78,10 +92,14 @@
                 video_signedUrl = data.video_url;
                 gpx_signedUrl = data.gpx_url;
             } else {
+                const message = data.message;
                 console.error("Failed to generate signed URL.");
+                alert(message);
+                uploading2=false;
             }
         } catch (error) {
             console.error("Error:", error);
+            uploading2=false;
         }
     }
 
@@ -117,13 +135,13 @@
     }
 
     async function handleFileUpload(event: Event) {
-
         if (description.length > 200) {
-            alert('Description must be less than 200 characters.');
+            alert("Description must be less than 200 characters.");
             return;
         }
 
         try {
+            uploading = true;
             await generateSignedUrl_video(selectedFileName);
             if (video_signedUrl) {
                 const fileInput = document.querySelector(
@@ -187,16 +205,18 @@
         } catch (error) {
             console.error("Error:", error);
         }
+
+        uploading = false;
     }
 
     async function handleFileUpload2(event: Event) {
-
         if (description2.length > 200) {
-            alert('Description must be less than 200 characters.');
+            alert("Description must be less than 200 characters.");
             return;
         }
 
         try {
+            uploading2 = true;
             await generateSignedUrl_video_gpx(selectedVideoName);
             if (video_signedUrl) {
                 const videoFileInput = document.getElementById(
@@ -283,6 +303,7 @@
         } catch (error) {
             console.error("Error:", error);
         }
+        uploading2 = false;
     }
 
     function handleFileChange(event: Event) {
@@ -307,55 +328,168 @@
     }
 </script>
 
+<svelte:head>
+    <title>Upload</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+</svelte:head>
+
 <!-- Taskbar -->
-<button on:click={logout_user}>Logout</button>
-<button on:click={redirectToHome}>Home</button>
-<button on:click={redirectToProfile}>Profile</button>
-<button on:click={redirectToUpload}>Upload</button>
-<button on:click={redirectToLogin}>Login</button>
-<button on:click={redirectToSignUp}>Sign up</button>
+<link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+/>
 
-<h1>Upload MP4 File</h1>
-
-<form on:submit|preventDefault={handleFileUpload}>
-    <label for="File">MP4 Video:</label>
-    <input type="file" accept=".mp4" on:change={handleFileChange} />
-    <label for="description">Description (a few words):</label>
-    <textarea id="description" bind:value={description} rows="4" cols="50"></textarea>
-    <button type="submit" disabled={!selectedFileName}>Upload</button>
-</form>
-
-<h1>Upload MP4 File and GPX File</h1>
-<form on:submit|preventDefault={handleFileUpload2}>
-    <div>
-        <label for="videoFile">MP4 Video:</label>
-        <input
-            type="file"
-            id="videoFile"
-            accept=".mp4"
-            on:change={handleVideoFileChange}
-        />
+<div
+    class="h-screen w-48 bg-gray-800 fixed top-0 left-0 flex flex-col items-center py-4 shadow-lg"
+>
+    <div class="flex flex-col items-center mt-4">
+        <div class="mb-8">
+            {#if profilePicture}
+                <img
+                    src={profilePicture}
+                    alt=""
+                    class="w-16 h-16 rounded-full border-2 border-white"
+                />
+            {:else}
+                <div
+                    class="w-16 h-16 rounded-full border-2 border-white flex"
+                ></div>
+            {/if}
+        </div>
+        <button
+            class="mb-4 w-full text-white py-2 px-4 rounded hover:bg-gray-700 flex items-center"
+            on:click={logout_user}
+        >
+            <i class="fas fa-sign-out-alt mr-2"></i>Logout
+        </button>
+        <button
+            class="mb-4 w-full text-white py-2 px-4 rounded hover:bg-gray-700 flex items-center"
+            on:click={redirectToHome}
+        >
+            <i class="fas fa-home mr-2"></i>Home
+        </button>
+        <button
+            class="mb-4 w-full text-white py-2 px-4 rounded hover:bg-gray-700 flex items-center"
+            on:click={redirectToProfile}
+        >
+            <i class="fas fa-user mr-2"></i>Profile
+        </button>
+        <button
+            class="mb-4 w-full text-white py-2 px-4 rounded hover:bg-gray-700 flex items-center"
+            on:click={redirectToUpload}
+        >
+            <i class="fas fa-upload mr-2"></i>Upload
+        </button>
+        <button
+            class="mb-4 w-full text-white py-2 px-4 rounded hover:bg-gray-700 flex items-center"
+            on:click={redirectToLogin}
+        >
+            <i class="fas fa-sign-in-alt mr-2"></i>Login
+        </button>
+        <button
+            class="mb-4 w-full text-white py-2 px-4 rounded hover:bg-gray-700 flex items-center"
+            on:click={redirectToSignUp}
+        >
+            <i class="fas fa-user-plus mr-2"></i>Sign up
+        </button>
     </div>
-    <div>
-        <label for="gpxFile">GPX File:</label>
-        <input
-            type="file"
-            id="gpxFile"
-            accept=".gpx"
-            on:change={handleGpxFileChange}
-        />
-    </div>
-    <label for="description2">Description (a few words):</label>
-    <textarea id="description2" bind:value={description2} rows="4" cols="50"></textarea>
-    <p></p>
-    <button type="submit" disabled={!selectedVideoName || !selectedGPXName}
-        >Upload</button
-    >
-    
-</form>
+</div>
 
-<style>
-    textarea {
-        resize: none; 
-    }
-</style>
+<!-- Uploads -->
+<div class="flex justify-center mt-12 w-5/6 px-16 ml-52">
+    <!-- First Upload Form -->
+    <div class="w-1/3 h-120 p-8 bg-gray-100 rounded-lg mr-12">
+        <h1 class="text-lg font-bold mb-4">Upload MP4 File</h1>
+        <form on:submit|preventDefault={handleFileUpload}>
+            <label for="File" class="block mb-2">MP4 Video:</label>
+            <input
+                type="file"
+                accept=".mp4"
+                on:change={handleFileChange}
+                class="mb-4"
+            />
+            <label for="description" class="block mb-2"
+                >Description (a few words):</label
+            >
+            <div class="flex mb-4">
+                <textarea
+                    id="description"
+                    bind:value={description}
+                    rows="6"
+                    class="flex-1 mr-4"
+                ></textarea>
+            </div>
+            <button
+                type="submit"
+                disabled={!selectedFileName || uploading2}
+                class=" w-full bg-blue-500 text-white py-2 px-4 rounded disabled:bg-gray-400 disabled:cursor-not-allowed"
+                >Upload</button
+            >
+        </form>
+        {#if uploading}
+        <p class="text-center mt-2 uploading-animation"></p>
+    {/if}
+    </div>
+
+    <!-- Second Upload Form -->
+    <div class="w-1/3 h-120 p-8 bg-gray-100 rounded-lg mr-8">
+        <h1 class="text-lg font-bold mb-4">Upload MP4 File and GPX File</h1>
+        <form on:submit|preventDefault={handleFileUpload2}>
+            <div class="mb-4">
+                <label for="videoFile" class="block mb-2">MP4 Video:</label>
+                <input
+                    type="file"
+                    id="videoFile"
+                    accept=".mp4"
+                    on:change={handleVideoFileChange}
+                    class="mb-2"
+                />
+            </div>
+            <div class="mb-4">
+                <label for="gpxFile" class="block mb-2">GPX File:</label>
+                <input
+                    type="file"
+                    id="gpxFile"
+                    accept=".gpx"
+                    on:change={handleGpxFileChange}
+                    class="mb-2"
+                />
+            </div>
+            <label for="description2" class="block mb-2"
+                >Description (a few words):</label
+            >
+            <div class="flex mb-4">
+                <textarea
+                    id="description2"
+                    bind:value={description2}
+                    rows="6"
+                    class="flex-1 mr-4"
+                ></textarea>
+            </div>
+            <button
+                type="submit"
+                disabled={!selectedVideoName || !selectedGPXName || uploading}
+                class="w-full bg-blue-500 text-white py-2 px-4 rounded disabled:bg-gray-400 disabled:cursor-not-allowed"
+                >Upload</button
+            >
+        </form>
+        {#if uploading2}
+        <p class="text-center mt-2 uploading-animation"></p>
+    {/if}
+    </div>
+</div>
+
+<!-- Disclaimer -->
+
+<div class="mt-8 ml-52 flex justify-center">
+    <div class="w-1/2 bg-gray-100 rounded-lg p-4">
+        <p class="text-center">
+            Please wait for the video to finish uploading (it may take some
+            time).
+        </p>
+        <p class="text-center">
+            Also, ensure that all the videos you upload have different names.
+        </p>
+    </div>
+</div>

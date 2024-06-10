@@ -141,7 +141,7 @@ def get_video_by_name(request):
                 # generate image link for every user if it isnt already generated
                 if username not in profile_picture_links:
 
-                    image_link=generate_picture_link(username)
+                    image_link=generate_picture_link(username,"not_start")
 
                     profile_picture_links[username] = image_link
 
@@ -414,7 +414,7 @@ def make_comment(request):
     else:
         return JsonResponse({'success': False, 'message': 'Invalid request method'}, status=400)
     
-def generate_picture_link(username):
+def generate_picture_link(username, when):
     try:
         user = User.objects.get(username=username)
         user_id=user.id
@@ -429,7 +429,13 @@ def generate_picture_link(username):
 
         blob = storage_client.bucket(bucket_name).blob(file_path)
         current_datetime = datetime.now()
-        expiration_time = current_datetime + timedelta(minutes=5)
+
+        if when=="not_start":
+            expiration_time = current_datetime + timedelta(minutes=5)
+        elif when=="start":
+            expiration_time = current_datetime + timedelta(hours=16)
+        else:
+            expiration_time = current_datetime + timedelta(minutes=1)
 
         image_link = blob.generate_signed_url(
             version='v4',
@@ -448,8 +454,10 @@ def display_profile_picture(request):
         try:
             data = json.loads(request.body)
             username = data.get('username')
+            when = data.get('when')
+
             
-            profile_picture=generate_picture_link(username)
+            profile_picture=generate_picture_link(username,when)
 
             return JsonResponse({'success': True, 'profile_picture': profile_picture}, status=200)
     

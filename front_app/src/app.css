@@ -3,11 +3,28 @@
 @tailwind utilities;
 
 .outline-black-outline {
-    -webkit-text-stroke: 0.35px black; /* For WebKit (Safari, Chrome) */
-    text-stroke: 0.35px black; /* For other browsers */
+    -webkit-text-stroke: 0.35px black; /* for WebKit (Safari, Chrome) */
+    text-stroke: 0.35px black; /* for other browsers */
   }
 .outline-black-outline-title
 {
-    -webkit-text-stroke: 0.75px black; /* For WebKit (Safari, Chrome) */
-    text-stroke: 0.75px black; /* For other browsers */
+    -webkit-text-stroke: 0.75px black; /* for WebKit (Safari, Chrome) */
+    text-stroke: 0.75px black; /* for other browsers */
   }
+
+  textarea {
+    resize: none; 
+}
+
+@keyframes upload {
+    0% { content: "Uploading"; }
+    33% { content: "Uploading."; }
+    66% { content: "Uploading.."; }
+    100% { content: "Uploading..."; }
+}
+
+.uploading-animation::after {
+    content: "Uploading";
+    animation: upload 1s infinite;
+}
+

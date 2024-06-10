@@ -5,7 +5,7 @@
   let email = "";
   let error = "";
   let errorMessage = "";
-  import { SERVER_URL } from "../../lib/utils";
+  import { SERVER_URL,fetchProfilePicture } from "../../lib/utils";
   import "../../app.css";
 
   async function handleSubmit() {
@@ -30,7 +30,11 @@
         const csrfToken = data.csrf_token;
         document.cookie = `csrftoken=${csrfToken}; path=/;`;
         document.cookie = `username=${username}; path=/;`;
-        console.log(document.cookie);
+
+        // save in local storage the image for current user
+        const profilePictureData = await fetchProfilePicture("start");
+        const profilePicture= profilePictureData.profile_picture;
+        sessionStorage.setItem('profile_picture', profilePicture);
 
         window.location.href = "/home"; // Redirect to home if succesfull
       } else {

@@ -241,15 +241,15 @@ function timeAgo(timestamp:string) {
   return `${Math.floor(seconds)} seconds ago`;
 }
 
-async function fetchProfilePicture():Promise<{ profile_picture: string }> {
-  try {
+async function fetchProfilePicture(when:string):Promise<{ profile_picture: string }> {
+  try {  
       const { username, csrfToken } = get_cookie_values();
       const response = await fetch(`${SERVER_URL}/display_profile_picture/`, {
           method: 'POST',
           headers: {
               'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ username: username, csrf_token: csrfToken }),
+          body: JSON.stringify({ username: username, csrf_token: csrfToken, when}),
       });
       
       if (response.ok) {

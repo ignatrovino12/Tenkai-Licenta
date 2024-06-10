@@ -441,8 +441,7 @@ def display_search_videos(request):
             is_ascending = data.get('is_ascending',False) 
             time_period = data.get('time_period')
             username=data.get('username')
-
-            print(order_by)
+            
 
             if order_by not in ['time', 'nr_upvotes']:
                 return JsonResponse({"error": "Invalid order_by field."}, status=400) 
