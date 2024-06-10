@@ -3,6 +3,7 @@
   let password = "";
   let errorMessage = "";
   import { SERVER_URL } from "../../lib/utils";
+  import "../../app.css";
   
   async function handleSubmit() {
     try {
@@ -32,28 +33,43 @@
   }
 </script>
 
-<div>
-  <h1>Login</h1>
-  {#if errorMessage}
-    <p style="color: red;">{errorMessage}</p>
-  {/if}
 
-  <form method="POST" on:submit|preventDefault={handleSubmit}>
-    <label>
-      Username:
-      <input type="text" bind:value={username} />
-    </label>
-    <label>
-      Password:
-      <input type="password" bind:value={password} />
-    </label>
-    <button type="submit">Login</button>
-  </form>
+
+<svelte:head>
+  <title>Login</title> 
+  <meta charset="utf-8"> 
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+</svelte:head>
+
+<div class="min-h-screen flex items-center justify-center bg-gradient-to-r from-cyan-400 to-green-400">
+  <div class="bg-white rounded-lg shadow-md w-full max-w-6xl flex overflow-hidden">
+    <!-- Left Section with Photo -->
+    <div class="hidden md:block w-1/2 bg-cover bg-center" style="background-image: url('landscape.png');height: 600px;"></div>
+    
+    <!-- Right Section with Login Form -->
+    <div class="w-full md:w-1/2 p-8 md:p-12 lg:p-16 flex flex-col justify-center">
+      <h1 class="text-3xl font-bold mb-8 text-gray-900 text-center">Login</h1>
+      {#if errorMessage}
+        <p class="text-red-500 mb-4">{errorMessage}</p>
+      {/if}
+      <form on:submit|preventDefault={handleSubmit}>
+        <div class="mb-4">
+          <label class="block text-gray-700 mb-2" for="username">Username:</label>
+          <input type="text" id="username" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400" bind:value={username} />
+        </div>
+        <div class="mb-4">
+          <label class="block text-gray-700 mb-2" for="password">Password:</label>
+          <input type="password" id="password" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400" bind:value={password} />
+        </div>
+        <button type="submit" class="w-full bg-indigo-500 text-white py-2 rounded-lg hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-400">
+          Login
+        </button>
+      </form>
+      <div class="mt-6 text-center">
+        <p class="text-gray-600">Don't have an account yet? <a href="/signup" class="text-blue-500 hover:underline">Sign up here!</a></p>
+      </div>
+    </div>
+  </div>
 </div>
 
-<div style="display: flex; align-items: center; margin-top: 10px;">
-  <p style="margin: 0;">Don't have an account yet?</p>
-  <a href="/signup" style="color: blue; text-decoration: underline; cursor: pointer; margin-left: 5px;">
-    Sign up here!
-  </a>
-</div>
+

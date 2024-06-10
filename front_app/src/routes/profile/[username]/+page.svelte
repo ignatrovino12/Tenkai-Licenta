@@ -21,6 +21,7 @@
   import { find_closest_waypoint, update_map } from "../../../lib/gpx_utils";
   import type { Waypoint_upload } from "../../../lib/gpx_utils";
   import type { Comment, Upvote,Video  } from "../../../lib/utils";
+  import "../../../app.css";
 
   let waypoints: Waypoint_upload[] = [];
   let map: L.Map;

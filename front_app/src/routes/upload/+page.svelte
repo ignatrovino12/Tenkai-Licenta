@@ -12,6 +12,7 @@
         logout_user,
         wait,
     } from "../../lib/utils";
+    import "../../app.css";
 
     let username: string;
     let csrfToken: string;

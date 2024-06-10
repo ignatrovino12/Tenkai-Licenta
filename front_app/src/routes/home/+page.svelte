@@ -3,6 +3,7 @@
   integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
   lang="ts"
 >
+  import "../../app.css";
   import { onMount } from "svelte";
   import {
     get_cookie_values,
@@ -83,7 +84,7 @@
           if (!isPlaying) return;
 
           const currentTime = video.currentTime;
-          if (waypoints.length > 0) {
+          if (waypoints && waypoints.length > 0) {
             const currentWaypoint = find_closest_waypoint(
               currentTime,
               waypoints,
@@ -114,7 +115,7 @@
           if (!isPlaying) return;
 
           const currentTime = video.currentTime;
-          if (waypoints.length > 0) {
+          if (waypoints && waypoints.length > 0) {
             const currentWaypoint = find_closest_waypoint(
               currentTime,
               waypoints,
@@ -416,17 +417,17 @@
   }
 </script>
 
-<head>
+<svelte:head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Home</title>
+  <title>Tenkai</title>
   <link
     rel="stylesheet"
     href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
     integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
     crossorigin=""
   />
-</head>
+</svelte:head>
 
 <!-- Taskbar -->
 <button on:click={logout_user}>Logout</button>
@@ -492,7 +493,7 @@
     <option value="last_year">Last Year</option>
   </select>
 
-  <button type="submit">Submit</button>
+  <button type="submit">Search</button>
 </form>
 
 <!-- Display users -->

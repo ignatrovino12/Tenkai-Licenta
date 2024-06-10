@@ -1,6 +1,7 @@
 <script >
 	import { navigate } from 'svelte-routing'
 	import {redirectToLogin } from '../lib/utils'
+	import "../app.css";
 
 	function goToAdminPage() {
 	  navigate('http://127.0.0.1:8000/admin/');

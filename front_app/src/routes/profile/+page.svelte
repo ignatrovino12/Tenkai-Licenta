@@ -14,6 +14,7 @@
 
     import { onMount } from "svelte";
     import Cropper from "cropperjs";
+    import "../../app.css";
     
     interface Video {
     video_name: string;
