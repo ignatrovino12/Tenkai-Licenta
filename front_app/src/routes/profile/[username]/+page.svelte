@@ -473,7 +473,7 @@
                   Name: {video.video_name.replace(".mp4", "")}
                 </p>
                 <p class="container_text">Description: {video.description}</p>
-                <p>Location: {video.country ? video.country + ', ' : ''}{video.city ? video.city : 'Unknown'}</p>
+                <p class="container_text">Location: {video.country ? video.country + ', ' : ''}{video.city ? video.city : 'Unknown'}</p>
           
                 <div class="flex justify-between items-center mt-2">
                   <div>

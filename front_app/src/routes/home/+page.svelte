@@ -42,9 +42,11 @@
   let city = "";
   let comments: Comment[];
   let newComment = "";
-  let username= "";
+  let username = "";
   let current_user_picture = "";
-  let show_videos= true;
+  let show_videos = true;
+  let profilePicture = "";
+  let selectedType = "videos";
 
   // search users
   let name = "";
@@ -59,13 +61,17 @@
   let time_period = "";
   let videos: Video[];
   let upvotes: Upvote[];
-  
-  
 
   onMount(async () => {
     username = get_cookie("username");
-    const csrfToken =get_cookie('csrftoken');
+    const csrfToken = get_cookie("csrftoken");
     const response = await is_logged(username, csrfToken);
+
+    const isBrowser = typeof window !== "undefined";
+
+    if (isBrowser) {
+      profilePicture = sessionStorage.getItem("profile_picture") || "";
+    }
 
     if (typeof window !== "undefined") {
       //gpx window
@@ -191,6 +197,7 @@
           const data = await LocationResponse.json();
           city = data.city;
           country = data.country;
+          updateInfo(city, country, 0);
         } else {
           city = "Unknown";
           country = "Unknown";
@@ -213,7 +220,7 @@
     videoName: string,
   ) {
     const L = await import("leaflet");
-    const username  = get_cookie("username");
+    const username = get_cookie("username");
 
     // Initialize the map if it hasn't been initialized yet
     if (!map) {
@@ -348,31 +355,39 @@
   }
 
   async function handleUpVoteClick(video: Video, videoUser: string) {
-  try {
-    const videoName = video.video_name;
-    const success = await handleUpVote(videoName, videoUser);
-    if (success) {
-      const videoIndex = videos.findIndex((v) => v.video_name === videoName);
-      const existingUpvoteIndex = upvotes.findIndex(
-        (upvote: Upvote) => upvote.video_name === videoName,
-      );
-      if (existingUpvoteIndex !== -1) {
-        // exista deja
-        videos[videoIndex] = {...videos[videoIndex], nr_likes: videos[videoIndex].nr_likes - 1};
-        upvotes = [...upvotes.slice(0, existingUpvoteIndex), ...upvotes.slice(existingUpvoteIndex + 1)];
+    try {
+      const videoName = video.video_name;
+      const success = await handleUpVote(videoName, videoUser);
+      if (success) {
+        const videoIndex = videos.findIndex((v) => v.video_name === videoName);
+        const existingUpvoteIndex = upvotes.findIndex(
+          (upvote: Upvote) => upvote.video_name === videoName,
+        );
+        if (existingUpvoteIndex !== -1) {
+          // exista deja
+          videos[videoIndex] = {
+            ...videos[videoIndex],
+            nr_likes: videos[videoIndex].nr_likes - 1,
+          };
+          upvotes = [
+            ...upvotes.slice(0, existingUpvoteIndex),
+            ...upvotes.slice(existingUpvoteIndex + 1),
+          ];
+        } else {
+          // nu exista
+          videos[videoIndex] = {
+            ...videos[videoIndex],
+            nr_likes: videos[videoIndex].nr_likes + 1,
+          };
+          upvotes = [...upvotes, { video_name: videoName }];
+        }
       } else {
-        // nu exista
-        videos[videoIndex] = {...videos[videoIndex], nr_likes: videos[videoIndex].nr_likes + 1};
-        upvotes = [...upvotes, { video_name: videoName }];
+        console.error("Failed to upvote.");
       }
-    } else {
-      console.error("Failed to upvote.");
+    } catch (error) {
+      console.error("Error upvoting:", error);
     }
-  } catch (error) {
-    console.error("Error upvoting:", error);
   }
-}
-
 
   function isUpvoted(videoName: string) {
     return upvotes.some((upvote: Upvote) => upvote.video_name === videoName);
@@ -427,206 +442,437 @@
     integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
     crossorigin=""
   />
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+  />
 </svelte:head>
 
 <!-- Taskbar -->
-<button on:click={logout_user}>Logout</button>
-<button on:click={redirectToHome}>Home</button>
-<button on:click={redirectToProfile}>Profile</button>
-<button on:click={redirectToUpload}>Upload</button>
-<button on:click={redirectToLogin}>Login</button>
-<button on:click={redirectToSignUp}>Sign up</button>
 
-<h2>Home page</h2>
-
-<!-- Search for users -->
-<h3>Search users</h3>
-<form on:submit={handleUsersSubmit}>
-  <label for="name">Name:</label>
-  <input type="text" id="name" bind:value={name} />
-
-  <label for="order_by">Order By:</label>
-  <select id="order_by" bind:value={order_by}>
-    <option value="nr_videos">Number of Videos</option>
-    <option value="nr_upvotes">Number of Upvotes</option>
-  </select>
-
-  <div>
-    <label>
-      <input type="radio" bind:group={is_ascending} value={true} /> Ascending
-    </label>
-    <label>
-      <input type="radio" bind:group={is_ascending} value={false} /> Descending
-    </label>
-  </div>
-
-  <button type="submit">Search</button>
-</form>
-
-<!-- Search for videos -->
-<h3>Search videos</h3>
-<form on:submit|preventDefault={handleVideosSubmit}>
-  <label for="video_name">Video Name</label>
-  <input id="video_name" type="text" bind:value={video_name} />
-
-  <label for="order_by_video">Order By</label>
-  <select id="order_by_video" bind:value={order_by_video}>
-    <option value="time">Time</option>
-    <option value="nr_upvotes">Number of Upvotes</option>
-  </select>
-
-  <div>
-    <label>
-      <input type="radio" bind:group={is_ascending_video} value={true} /> Ascending
-    </label>
-    <label>
-      <input type="radio" bind:group={is_ascending_video} value={false} /> Descending
-    </label>
-  </div>
-
-  <label for="time_period">Time Period</label>
-  <select id="time_period" bind:value={time_period}>
-    <option value="">All time</option>
-    <option value="today">Today</option>
-    <option value="last_week">Last Week</option>
-    <option value="last_month">Last Month</option>
-    <option value="last_year">Last Year</option>
-  </select>
-
-  <button type="submit">Search</button>
-</form>
-
-<!-- Display users -->
-{#if user_data && !show_videos}
-  <h3>Users</h3>
-  {#each user_data as user, index}
-    <div>
-      <div
-        role="button"
-        tabindex="0"
-        on:click={() => redirectToUserProfile(user.name)}
-        on:keypress={no_keypress}
-        style="cursor: pointer; max-width: 250px;"
-      >
+<div
+  class="h-screen w-48 bg-gray-800 fixed top-0 left-0 flex flex-col items-center py-4 shadow-lg"
+>
+  <div class="flex flex-col items-center mt-4">
+    <div class="mb-8">
+      {#if profilePicture}
         <img
-          src={user.image_link}
-          alt={user.name}
-          style="width: 50px; height: 50px; display: inline-block; vertical-align: middle;"
+          src={profilePicture}
+          alt=""
+          class="w-16 h-16 rounded-full border-2 border-white"
         />
-        <h3 style="display: inline-block; vertical-align: middle;">
-          {user.name}
-        </h3>
-      </div>
-      <p>Videos: {user.nr_videos} Upvotes: {user.nr_upvotes}</p>
+      {:else}
+        <div class="w-16 h-16 rounded-full border-2 border-white flex"></div>
+      {/if}
     </div>
-  {/each}
+    <button
+      class="mb-4 w-full text-white py-2 px-4 rounded hover:bg-gray-700 flex items-center"
+      on:click={logout_user}
+    >
+      <i class="fas fa-sign-out-alt mr-2"></i>Logout
+    </button>
+    <button
+      class="mb-4 w-full text-white py-2 px-4 rounded hover:bg-gray-700 flex items-center"
+      on:click={redirectToHome}
+    >
+      <i class="fas fa-home mr-2"></i>Home
+    </button>
+    <button
+      class="mb-4 w-full text-white py-2 px-4 rounded hover:bg-gray-700 flex items-center"
+      on:click={redirectToProfile}
+    >
+      <i class="fas fa-user mr-2"></i>Profile
+    </button>
+    <button
+      class="mb-4 w-full text-white py-2 px-4 rounded hover:bg-gray-700 flex items-center"
+      on:click={redirectToUpload}
+    >
+      <i class="fas fa-upload mr-2"></i>Upload
+    </button>
+    <button
+      class="mb-4 w-full text-white py-2 px-4 rounded hover:bg-gray-700 flex items-center"
+      on:click={redirectToLogin}
+    >
+      <i class="fas fa-sign-in-alt mr-2"></i>Login
+    </button>
+    <button
+      class="mb-4 w-full text-white py-2 px-4 rounded hover:bg-gray-700 flex items-center"
+      on:click={redirectToSignUp}
+    >
+      <i class="fas fa-user-plus mr-2"></i>Sign up
+    </button>
+  </div>
+</div>
+
+<!-- Page Loadout -->
+<div class="ml-52 mt-8 flex flex-col">
+  <div class="flex justify-center items-center space-x-4">
+    <!-- Select Button -->
+    <select
+      class="border border-gray-300 rounded p-2"
+      bind:value={selectedType}
+    >
+      <option value="users">Search Users</option>
+      <option value="videos">Search Videos</option>
+    </select>
+
+    <!-- Search Forms -->
+    <div class="flex justify-center space-x-4">
+      <!-- Search Users Form -->
+      {#if selectedType === "users"}
+        <form on:submit={handleUsersSubmit} class="flex flex-col space-y-4">
+          <div class="flex items-center space-x-4">
+            <label for="name" class="text-sm"></label>
+            <input
+              type="text"
+              id="name"
+              bind:value={name}
+              placeholder="Name"
+              class="border border-gray-300 rounded p-2"
+            />
+
+            <label for="order_by" class="text-sm"></label>
+            <select
+              id="order_by"
+              bind:value={order_by}
+              class="border border-gray-300 rounded p-2"
+            >
+              <option value="nr_videos">Number of Videos</option>
+              <option value="nr_upvotes">Number of Upvotes</option>
+            </select>
+
+            <div class="flex flex-col">
+              <label class="text-sm">
+                <input
+                  type="radio"
+                  bind:group={is_ascending}
+                  value={true}
+                  class="mr-1"
+                /> Ascending
+              </label>
+              <label class="text-sm">
+                <input
+                  type="radio"
+                  bind:group={is_ascending}
+                  value={false}
+                  class="mr-1"
+                /> Descending
+              </label>
+            </div>
+
+            <button
+              type="submit"
+              class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+              >Search</button
+            >
+          </div>
+        </form>
+      {/if}
+
+      <!-- Search Videos Form -->
+      {#if selectedType === "videos"}
+        <form
+          on:submit|preventDefault={handleVideosSubmit}
+          class="flex flex-col space-y-4"
+        >
+          <div class="flex items-center space-x-4">
+            <label for="video_name" class="text-sm"></label>
+            <input
+              id="video_name"
+              type="text"
+              bind:value={video_name}
+              placeholder="Video Name"
+              class="border border-gray-300 rounded p-2"
+            />
+
+            <label for="order_by_video" class="text-sm"></label>
+            <select
+              id="order_by_video"
+              bind:value={order_by_video}
+              class="border border-gray-300 rounded p-2"
+            >
+              <option value="time">Time</option>
+              <option value="nr_upvotes">Number of Upvotes</option>
+            </select>
+
+            <div class="flex flex-col">
+              <label class="text-sm">
+                <input
+                  type="radio"
+                  bind:group={is_ascending_video}
+                  value={true}
+                  class="mr-1"
+                /> Ascending
+              </label>
+              <label class="text-sm">
+                <input
+                  type="radio"
+                  bind:group={is_ascending_video}
+                  value={false}
+                  class="mr-1"
+                /> Descending
+              </label>
+            </div>
+
+            <label for="time_period" class="text-sm"></label>
+            <select
+              id="time_period"
+              bind:value={time_period}
+              class="border border-gray-300 rounded p-2"
+            >
+              <option value="">All time</option>
+              <option value="today">Today</option>
+              <option value="last_week">Last Week</option>
+              <option value="last_month">Last Month</option>
+              <option value="last_year">Last Year</option>
+            </select>
+
+            <button
+              type="submit"
+              class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+              >Search</button
+            >
+          </div>
+        </form>
+      {/if}
+    </div>
+  </div>
+
+  <div class="flex flex-wrap justify-between mt-8 space-x-8">
+
+   <!-- Users Section -->
+{#if user_data && !show_videos}
+  <div class="w-full md:w-2/3 lg:w-1/2">
+    <div class="border-4 border-double border-indigo-800 flex justify-center max-h-9">
+      <h2 class="text-lg font-bold mb-4 text-center">Users</h2>
+    </div>
+
+    <div class="mb-8 border-l-4 border-r-4 border-b-4 border-double border-indigo-800">
+      {#if user_data.length > 0}
+        <div class="overflow-y-auto max-h-96 container_videos">
+          <ul class="space-y-4">
+            {#each user_data as user}
+              <li class="border p-4 rounded-lg">
+                <div
+                  class="flex items-center mb-2"
+                  role="button"
+                  tabindex="0"
+                  on:click={() => redirectToUserProfile(user.name)}
+                  on:keypress={no_keypress}
+                  style="max-width: fit-content;"
+                >
+                  <img
+                    src={user.image_link}
+                    alt={user.name}
+                    class="w-12 h-12 rounded-full"
+                  />
+                  <p class="font-bold ml-4">{user.name}</p>
+                </div>
+                <p class="text-lg font-bold">
+                  Videos: {user.nr_videos} Upvotes: {user.nr_upvotes}
+                </p>
+              </li>
+            {/each}
+          </ul>
+        </div>
+      {:else}
+        <p class="text-gray-500">No users available.</p>
+      {/if}
+    </div>
+  </div>
 {/if}
 
-<!-- Display Videos -->
-<div>
 
-  {#if videos && upvotes && videos.length > 0 && show_videos}
-  <h3>Videos:</h3>
-    <ul>
-      {#each videos as video}
-        <li>
-          <div
-            role="button"
-            tabindex="0"
-            on:click={() => redirectToUserProfile(video.username)}
-            on:keypress={no_keypress}
-            style="cursor: pointer; max-width: 250px;"
-          >
-            <img
-              src={video.image_link}
-              alt={video.username}
-              style="width: 50px; height: 50px; display: inline-block; vertical-align: middle;"
-            />
-            <h3 style="display: inline-block; vertical-align: middle;">
-              {video.username}
-            </h3>
-          </div>
-          <p>Video name: {video.video_name.replace(".mp4", "")}</p>
-          <p>Description: {video.description}</p>
-          <p>Number of upvotes: {video.nr_likes}</p>
-          <p>Country: {video.country ? video.country : "Unknown"}</p>
-          <p>City: {video.city ? video.city : "Unknown"}</p>
-          <button
-            on:click={() => selectVideoName(video.video_name, video.username)}
-            >Select</button
-          >
-          <button
-            on:click={() => handleUpVoteClick(video, video.username)}
-            class:selected={upvotes.some(
-              (upvote) => upvote.video_name === video.video_name,
-            )}
-          >
-            {#if isUpvoted(video.video_name)}
-              <p>Upvoted</p>
-            {:else}
-              <p>Upvote</p>
-            {/if}
-          </button>
-        </li>
-      {/each}
-    </ul>
-  {/if}
-</div>
+    <!-- Videos Section -->
+    {#if show_videos}
+    <div class="w-full md:w-2/3 lg:w-1/2">
+      <div
+        class=" border-4 border-double border-indigo-800 flex justify-center max-h-9"
+      >
+        <h2 class="text-lg font-bold mb-4 text-center">Videos</h2>
+      </div>
 
-<!-- Map and Video -->
-<div id="info" style="display: flex; justify-content: center; gap: 20px;">
-  <p id="speed">Speed:</p>
-  <p id="city">City:</p>
-  <p id="country">Country:</p>
-</div>
+      <div
+        class="mb-8 border-l-4 border-r-4 border-b-4 border-double border-indigo-800"
+      >
+        {#if videos && upvotes}
+          {#if videos.length > 0}
+            <div class="overflow-y-auto max-h-96 container_videos">
+              <ul class="space-y-4">
+                {#each videos as video}
+                  <li class="border p-4 rounded-lg">
+                    <div
+                      class="flex items-center mb-2"
+                      role="button"
+                      tabindex="0"
+                      on:click={() => redirectToUserProfile(video.username)}
+                      on:keypress={no_keypress}
+                      style="max-width: fit-content;"
+                    >
+                      <img
+                        src={video.image_link}
+                        alt={video.username}
+                        class="w-12 h-12 rounded-full"
+                      />
+                      <p class="font-bold ml-4">{video.username}</p>
+                    </div>
+                    <p class="text-lg font-bold">
+                      Name: {video.video_name.replace(".mp4", "")}
+                    </p>
+                    <p class="container_text">
+                      Description: {video.description}
+                    </p>
+                    <p class="container_text">
+                      Location: {video.country
+                        ? video.country + ", "
+                        : ""}{video.city ? video.city : "Unknown"}
+                    </p>
 
-<div style="display: flex; align-items: stretch; justify-content: center;">
-  <div
-    id="map"
-    style="width: 500px; height: 500px; border: 1px solid #000;"
-  ></div>
-
-  <video
-    id="video"
-    controls
-    style="max-width: 600px; height: 500px; background-color:#3b3b3b;"
-  >
-    <track kind="captions" src={captionsUrl} srclang="en" label="English" />
-    {#if cloud_videoUrl}
-      <source src={cloud_videoUrl} type="video/mp4" />
-      Your browser does not support the video tag.
-    {/if}
-  </video>
-</div>
-
-<!-- Display comments -->
-{#if comments}
-  <h2>Comments:</h2>
-  <input
-    type="text"
-    bind:value={newComment}
-    placeholder="Add your comment here"
-  />
-  <button on:click={handleCommentButtonClick}>Submit Comment</button>
-  {#if comments.length > 0}
-    <p></p>
-    {#each comments as comment}
-      <div class="comment">
-        <img
-          src={comment.profile_picture}
-          alt=""
-          style="width: 50px; height: 50px; display: inline-block; vertical-align: middle;"
-        />
-        <p style="display: inline-block; vertical-align: middle;">
-          {comment.username} - {timeAgo(comment.timestamp)}
-        </p>
-        <p>{comment.comment}</p>
-        {#if username === comment.username}
-          <button on:click={() => handleDeleteComment(comment)}>Delete</button>
+                    <div class="flex justify-between items-center mt-2">
+                      <div>
+                        <button
+                          on:click={() =>
+                            selectVideoName(video.video_name, video.username)}
+                          class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2.5 px-4 rounded"
+                        >
+                          Select
+                        </button>
+                        <button
+                          on:click={() =>
+                            handleUpVoteClick(video, video.username)}
+                          class:selected={upvotes.some(
+                            (upvote) => upvote.video_name === video.video_name,
+                          )}
+                          class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded"
+                        >
+                          {#if isUpvoted(video.video_name)}
+                            <div class="flex items-center">
+                              <i class="fas fa-thumbs-up text-white"></i>
+                              <p class="ml-2 text-sm">{video.nr_likes}</p>
+                            </div>
+                          {:else}
+                            <div class="flex items-center">
+                              <i class="far fa-thumbs-up text-white"></i>
+                              <p class="ml-2 text-sm">{video.nr_likes}</p>
+                            </div>
+                          {/if}
+                        </button>
+                      </div>
+                    </div>
+                  </li>
+                {/each}
+              </ul>
+            </div>
+          {:else}
+            <p class="text-gray-500">No videos available.</p>
+          {/if}
+        {:else}
+          <p class="text-gray-500">Search for a video or user.</p>
         {/if}
       </div>
-    {/each}
-  {:else}
-    <p>No comments available.</p>
-  {/if}
-{/if}
+    </div>
+    {/if}
+
+    <!-- Comments Section -->
+    <div class="w-full md:w-1/3 lg:w-1/3 pr-4">
+      <div
+        class="border-4 border-double border-indigo-800 flex justify-center max-h-9"
+      >
+        <h2 class="text-lg font-bold mb-4 text-center">Comments</h2>
+      </div>
+
+      <div
+        class=" mb-8 border-l-4 border-r-4 border-b-4 border-double border-indigo-800 max-h-96 overflow-y-auto container_comments"
+      >
+        {#if comments}
+          <div
+            class="overflow-y-auto max-h-96 container_comments p-4 container_comments"
+          >
+            <input
+              type="text"
+              bind:value={newComment}
+              placeholder="Add your comment here"
+              class="w-full mb-4 p-2 border border-gray-300 rounded"
+              maxlength="200"
+            />
+            <button
+              on:click={handleCommentButtonClick}
+              class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mb-4 w-full"
+              disabled={newComment.trim().length === 0}
+            >
+              Submit Comment
+            </button>
+            {#if comments.length > 0}
+              {#each comments as comment}
+                <div class="comment mb-4 p-4 border rounded-lg">
+                  <div
+                    class="flex items-center mb-2"
+                    style="max-width: fit-content;"
+                    on:click={() => redirectToUserProfile(comment.username)}
+                    role="button"
+                    tabindex="0"
+                    on:keypress={no_keypress}
+                  >
+                    <img
+                      src={comment.profile_picture}
+                      alt=""
+                      class="w-12 h-12 rounded-full"
+                    />
+                    <div class="ml-4">
+                      <p class="font-bold">{comment.username}</p>
+                      <p class="text-sm text-gray-600">
+                        {timeAgo(comment.timestamp)}
+                      </p>
+                    </div>
+                  </div>
+                  <p class="mb-2 container_text">{comment.comment}</p>
+                  {#if username === comment.username}
+                    <button
+                      on:click={() => handleDeleteComment(comment)}
+                      class="text-red-500 hover:underline"
+                    >
+                      Delete
+                    </button>
+                  {/if}
+                </div>
+              {/each}
+            {:else}
+              <p class="text-gray-500">No comments available.</p>
+            {/if}
+          </div>
+        {:else}
+          <div class="overflow-y-auto max-h-96 container_comments p-4">
+            <p class="text-gray-500">Select a video for comments to appear.</p>
+          </div>
+        {/if}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Map and Video Section-->
+<div class="ml-48 mt-8 flex flex-col">
+  <div class="bg-gray-200 rounded-lg p-4 max-w-screen-lg mx-auto">
+    <div id="info" class="flex justify-center gap-8">
+      <p id="speed">Speed:</p>
+      <p id="city">City:</p>
+      <p id="country">Country:</p>
+    </div>
+  </div>
+
+  <div class="flex justify-center">
+    <div
+      id="map"
+      class="w-1/2 border border-black"
+      style="height: 500px;"
+    ></div>
+
+    <video id="video" controls class="w-1/2 h-500 bg-neutral-800">
+      <track kind="captions" src={captionsUrl} srclang="en" label="English" />
+      {#if cloud_videoUrl}
+        <source src={cloud_videoUrl} type="video/mp4" />
+        Your browser does not support the video tag.
+      {/if}
+    </video>
+  </div>
+</div>
