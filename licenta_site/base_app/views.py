@@ -263,7 +263,7 @@ def display_videos_profile(request):
             user = User.objects.get(username=username)
             user_profile = UserProfile.objects.get(user=user)
 
-            videos = Video.objects.filter(user_profile=user_profile)
+            videos = Video.objects.filter(user_profile=user_profile).order_by('-timestamp')
 
             video_data = []
             for video in videos:

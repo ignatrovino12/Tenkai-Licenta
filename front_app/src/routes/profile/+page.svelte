@@ -280,6 +280,11 @@
     href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/2.0.0-alpha.2/cropper.css"
     rel="stylesheet"
   />
+  <link
+  rel="stylesheet"
+  href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+/>
+
   <script
     src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/2.0.0-alpha.2/cropper.min.js"
   ></script>
@@ -289,10 +294,6 @@
 </svelte:head>
 
 <!-- Taskbar -->
-<link
-  rel="stylesheet"
-  href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
-/>
 
 <div
   class="h-screen w-48 bg-gray-800 fixed top-0 left-0 flex flex-col items-center py-4 shadow-lg"
@@ -358,7 +359,7 @@
   >
 
   <!-- Change Credentials -->
-  <div class="container_credentials mt-8">
+  <div class="container_credentials mt-8 max-w-64">
     <h1 class="text-xl font-bold mb-4">Change Credentials</h1>
 
     <form on:submit|preventDefault={handleSubmit} class="space-y-4">
@@ -414,11 +415,11 @@
             </form>
             <div id="cropper-container" style="height:300px; width:600px;" class="mb-4 border"></div>
         </div>
-        <div class="flex items-center justify-center lg:ml-4 lg:mr-4 my-4 lg:my-0">
+        <div class="flex items-center justify-center lg:ml-8 lg:mr-4 my-4 lg:my-0 pt-16">
           <i class="fas fa-arrow-right text-6xl text-gray-500"></i>
       </div>
-        <div class="lg:w-1/2 lg:pl-4 lg:ml-4">
-            <h3 class="text-lg font-bold mb-2 lg:mt-0 lg:ml-16">Result</h3>
+        <div class="lg:w-1/2 lg:pl-4 lg:ml-4 pt-16 ">
+            <h3 class="text-xl font-bold mb-2 lg:mt-0 lg:ml-16 ">&nbsp; Result</h3>
             <div id="result" class="mt-4 mb-4 "></div>
         </div>
     </div>
@@ -430,21 +431,24 @@
 
 
 <!-- Delete Videos -->
-<div class="container_videos mt-8 p-4 border rounded shadow-lg h-96 overflow-y-scroll">
+<div class="container_videos    mt-8 p-4 border rounded shadow-lg h-96 overflow-y-scroll" style="width:600px;">
   <h1 class="text-xl font-bold mb-4">Delete videos</h1>
   {#if videos.length > 0}
     <ul class="space-y-4">
       {#each videos as video}
         <li class="flex justify-between items-center p-2 bg-gray-100 rounded">
-          <p class="text-sm">
+          <div class="flex-grow max-w-3/4">
+            <p class="text-sm break-words">
             Video Name: {video.video_name.replace(".mp4", "")} - Country: {video.country || "Unknown"}, City: {video.city || "Unknown"}
           </p>
+        </div>
           <button
             on:click={() => deleteVideo(video.video_name)}
             class="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded"
           >
             Delete
           </button>
+          
         </li>
       {/each}
     </ul>
@@ -452,5 +456,6 @@
     <p class="text-gray-500">No videos available.</p>
   {/if}
 </div>
+
 
 </div>

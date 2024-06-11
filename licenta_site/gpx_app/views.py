@@ -36,8 +36,11 @@ def upload_video(request):
             user_id = get_user_id_from_username(username)
 
             if len(description) > 200:
-                return JsonResponse({"error": "Description must be less than 200 characters."}, status=400)
-         
+                return JsonResponse({'success': False, 'message': "Description must be less than 200 characters."}, status=400)
+            
+            if len(video_name) > 30:
+                return JsonResponse({'success': False, 'message': "The name must have less than 30 characters."}, status=400)
+            
             if not (video_name.endswith('.mp4') or video_name.endswith('.MP4')):
                 return JsonResponse({'success': False, 'message': 'File provided is not an mp4'}, status=404)
 
@@ -220,7 +223,10 @@ def upload_video_gpx(request):
             user_id = get_user_id_from_username(username)
 
             if len(description) > 200:
-                return JsonResponse({"error": "Description must be less than 200 characters."}, status=400)
+                return JsonResponse({'success': False, 'message': "Description must be less than 200 characters."}, status=400)
+            
+            if len(video_name) > 30:
+                return JsonResponse({'success': False, 'message': "The name must have less than 30 characters."}, status=400)
             
             if not (video_name.endswith('.mp4') or video_name.endswith('.MP4')):
                 return JsonResponse({'success': False, 'message': 'File provided is not an mp4'}, status=404)

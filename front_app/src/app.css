@@ -28,3 +28,28 @@
     animation: upload 1s infinite;
 }
 
+.container_videos::-webkit-scrollbar {
+  display: none; /* for WebKit (Safari, Chrome) */
+}
+.container_videos {
+  -ms-overflow-style: none;  /* for other browsers */
+  scrollbar-width: none; 
+}
+
+.container_comments::-webkit-scrollbar {
+  display: none; /* for WebKit (Safari, Chrome) */
+}
+.container_comments {
+  -ms-overflow-style: none;  /* for other browsers */
+  scrollbar-width: none; 
+}
+
+.container_text {
+  word-break: break-word; 
+  overflow: hidden; 
+  text-overflow: ellipsis; 
+  display: -webkit-box; 
+  -webkit-line-clamp: 10; 
+  -webkit-box-orient: vertical; 
+}
+

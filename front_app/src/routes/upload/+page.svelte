@@ -37,7 +37,7 @@
         }
 
         const isBrowser = typeof window !== "undefined";
-        
+
         if (isBrowser) {
             profilePicture = sessionStorage.getItem("profile_picture") || "";
         }
@@ -64,11 +64,11 @@
                 const message = data.message;
                 console.error("Failed to generate signed URL.");
                 alert(message);
-                uploading=false;
+                uploading = false;
             }
         } catch (error) {
             console.error("Error:", error);
-            uploading=false;
+            uploading = false;
         }
     }
 
@@ -94,11 +94,11 @@
                 const message = data.message;
                 console.error("Failed to generate signed URL.");
                 alert(message);
-                uploading2=false;
+                uploading2 = false;
             }
         } catch (error) {
             console.error("Error:", error);
-            uploading2=false;
+            uploading2 = false;
         }
     }
 
@@ -328,16 +328,17 @@
 </script>
 
 <svelte:head>
+    <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+/>
+
     <title>Upload</title>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 </svelte:head>
 
 <!-- Taskbar -->
-<link
-    rel="stylesheet"
-    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
-/>
 
 <div
     class="h-screen w-48 bg-gray-800 fixed top-0 left-0 flex flex-col items-center py-4 shadow-lg"
@@ -395,19 +396,21 @@
     </div>
 </div>
 
+
 <!-- Uploads -->
 <div class="flex justify-center mt-12 w-5/6 px-16 ml-52">
     <!-- First Upload Form -->
     <div class="w-1/3 h-120 p-8 bg-gray-100 rounded-lg mr-12">
         <h1 class="text-lg font-bold mb-4">Upload MP4 File</h1>
         <form on:submit|preventDefault={handleFileUpload}>
-            <label for="File" class="block mb-2">MP4 Video:</label>
+            <label for="File" class="block mb-2">MP4 Video and Name:</label>
             <input
                 type="file"
                 accept=".mp4"
                 on:change={handleFileChange}
                 class="mb-4"
             />
+
             <label for="description" class="block mb-2"
                 >Description (a few words):</label
             >
@@ -427,8 +430,8 @@
             >
         </form>
         {#if uploading}
-        <p class="text-center mt-2 uploading-animation"></p>
-    {/if}
+            <p class="text-center mt-2 uploading-animation"></p>
+        {/if}
     </div>
 
     <!-- Second Upload Form -->
@@ -436,7 +439,9 @@
         <h1 class="text-lg font-bold mb-4">Upload MP4 File and GPX File</h1>
         <form on:submit|preventDefault={handleFileUpload2}>
             <div class="mb-4">
-                <label for="videoFile" class="block mb-2">MP4 Video:</label>
+                <label for="videoFile" class="block mb-2"
+                    >MP4 Video and Name:</label
+                >
                 <input
                     type="file"
                     id="videoFile"
@@ -474,8 +479,8 @@
             >
         </form>
         {#if uploading2}
-        <p class="text-center mt-2 uploading-animation"></p>
-    {/if}
+            <p class="text-center mt-2 uploading-animation"></p>
+        {/if}
     </div>
 </div>
 

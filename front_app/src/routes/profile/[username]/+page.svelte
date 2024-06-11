@@ -17,10 +17,11 @@
     get_cookie,
     deleteComment,
     handleUpVote,
+    redirectToUserProfile,
   } from "../../../lib/utils";
   import { find_closest_waypoint, update_map } from "../../../lib/gpx_utils";
   import type { Waypoint_upload } from "../../../lib/gpx_utils";
-  import type { Comment, Upvote,Video  } from "../../../lib/utils";
+  import type { Comment, Upvote, Video } from "../../../lib/utils";
   import "../../../app.css";
 
   let waypoints: Waypoint_upload[] = [];
@@ -38,6 +39,8 @@
   let newComment = "";
   let current_user_picture = "";
   let username = "";
+  let profile_username = "";
+  let profilePicture = "";
 
   // data from server
   /** @type {import('./$types').PageData} */
@@ -54,6 +57,13 @@
 
   onMount(async () => {
     username = get_cookie("username");
+    profile_username = userData.username;
+    const isBrowser = typeof window !== "undefined";
+
+    if (isBrowser) {
+      profilePicture = sessionStorage.getItem("profile_picture") || "";
+    }
+
     if (typeof window !== "undefined") {
       //gpx window
 
@@ -179,6 +189,7 @@
           const data = await LocationResponse.json();
           city = data.city;
           country = data.country;
+          updateInfo(city, country, 0);
         } else {
           city = "Unknown";
           country = "Unknown";
@@ -313,13 +324,13 @@
 
   async function handleUpVoteClick(video: Video, videoUser: string) {
     try {
-      const videoName=video.video_name
+      const videoName = video.video_name;
       const success = await handleUpVote(videoName, videoUser);
       if (success) {
         // console.log("Upvoted successfully.");
 
         const existingUpvoteIndex = userData.upvotes.findIndex(
-          (upvote:Upvote) => upvote.video_name === videoName,
+          (upvote: Upvote) => upvote.video_name === videoName,
         );
         if (existingUpvoteIndex !== -1) {
           // exista deja
@@ -344,91 +355,254 @@
       (upvote: Upvote) => upvote.video_name === videoName,
     );
   }
+
+  function no_keypress() {}
 </script>
 
-<head>
+<svelte:head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>User profile</title>
+  <title>Profile {profile_username}</title>
   <link
     rel="stylesheet"
     href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
     integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
     crossorigin=""
   />
-</head>
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+  />
+</svelte:head>
 
 <!-- Taskbar -->
-<button on:click={logout_user}>Logout</button>
-<button on:click={redirectToHome}>Home</button>
-<button on:click={redirectToProfile}>Profile</button>
-<button on:click={redirectToUpload}>Upload</button>
-<button on:click={redirectToLogin}>Login</button>
-<button on:click={redirectToSignUp}>Sign up</button>
 
-<div>
-  {#if data}
-    {#if userData}
-      <p>Username: {userData.username}</p>
-      {#if userData.image_link}
-        <img src={userData.image_link} alt="" />
+<div
+  class="h-screen w-48 bg-gray-800 fixed top-0 left-0 flex flex-col items-center py-4 shadow-lg"
+>
+  <div class="flex flex-col items-center mt-4">
+    <div class="mb-8">
+      {#if profilePicture}
+        <img
+          src={profilePicture}
+          alt=""
+          class="w-16 h-16 rounded-full border-2 border-white"
+        />
       {:else}
-        <p>User does not have a picture.</p>
+        <div class="w-16 h-16 rounded-full border-2 border-white flex"></div>
       {/if}
-
-      <h2>Videos:</h2>
-      {#if userData.videos && userData.videos.length > 0}
-        <ul>
-          {#each userData.videos as video}
-            <li>
-              <p>Video name: {video.video_name.replace(".mp4", "")}</p>
-              <p>Description: {video.description}</p>
-              <p>Number of upvotes: {video.nr_likes}</p>
-              <p>Country: {video.country ? video.country : "Unknown"}</p>
-              <p>City: {video.city ? video.city : "Unknown"}</p>
-              <button on:click={() => selectVideoName(video.video_name)}
-                >Select</button
-              >
-              <button
-                on:click={() =>
-                  handleUpVoteClick(video, userData.username)}
-                class:selected={userData.upvotes.includes(video.video_name)}
-              >
-                {#if isUpvoted(video.video_name)}
-                  <p>Upvoted</p>
-                {:else}
-                  <p>Upvote</p>
-                {/if}
-              </button>
-            </li>
-          {/each}
-        </ul>
-      {:else}
-        <p>No videos available.</p>
-      {/if}
-    {:else}
-      <p>Loading data...</p>
-    {/if}
-  {/if}
+    </div>
+    <button
+      class="mb-4 w-full text-white py-2 px-4 rounded hover:bg-gray-700 flex items-center"
+      on:click={logout_user}
+    >
+      <i class="fas fa-sign-out-alt mr-2"></i>Logout
+    </button>
+    <button
+      class="mb-4 w-full text-white py-2 px-4 rounded hover:bg-gray-700 flex items-center"
+      on:click={redirectToHome}
+    >
+      <i class="fas fa-home mr-2"></i>Home
+    </button>
+    <button
+      class="mb-4 w-full text-white py-2 px-4 rounded hover:bg-gray-700 flex items-center"
+      on:click={redirectToProfile}
+    >
+      <i class="fas fa-user mr-2"></i>Profile
+    </button>
+    <button
+      class="mb-4 w-full text-white py-2 px-4 rounded hover:bg-gray-700 flex items-center"
+      on:click={redirectToUpload}
+    >
+      <i class="fas fa-upload mr-2"></i>Upload
+    </button>
+    <button
+      class="mb-4 w-full text-white py-2 px-4 rounded hover:bg-gray-700 flex items-center"
+      on:click={redirectToLogin}
+    >
+      <i class="fas fa-sign-in-alt mr-2"></i>Login
+    </button>
+    <button
+      class="mb-4 w-full text-white py-2 px-4 rounded hover:bg-gray-700 flex items-center"
+      on:click={redirectToSignUp}
+    >
+      <i class="fas fa-user-plus mr-2"></i>Sign up
+    </button>
+  </div>
 </div>
 
-<div id="info" style="display: flex; justify-content: center; gap: 20px;">
+
+<!-- Page Loadout -->
+<div class="ml-52 mt-8 flex flex-col">
+
+  <!-- Username and Image Section -->
+  <div class="mb-8 flex justify-center">
+    {#if data && userData}
+      <div class="bg-gray-200 rounded-full p-4 flex items-center mb-4">
+        {#if userData.image_link}
+          <img
+            src={userData.image_link}
+            alt=""
+            class="w-16 h-16 rounded-full border-2 border-gray-800 "
+          />
+        {:else}
+          <p class="text-gray-500">User does not have a picture.</p>
+        {/if}
+        <p class="text-lg font-bold ml-4">Videos {userData.username} </p>
+      </div>
+    {/if}
+  </div>
+
+  <div class="flex flex-wrap justify-between space-x-8">
+
+  <!-- Videos Section -->
+  <div class="w-full md:w-2/3 lg:w-1/2">
+  <div class=" border-4 border-double border-indigo-800 flex justify-center  max-h-9"> 
+    <h2 class="text-lg font-bold mb-4 text-center">Videos</h2>
+  </div>
+  
+  <div class="mb-8 border-l-4 border-r-4 border-b-4 border-double border-indigo-800">
+    
+    {#if data && userData}
+      {#if userData.videos && userData.videos.length > 0}
+        <div class="overflow-y-auto max-h-96 container_videos">
+          <ul class="space-y-4">
+            {#each userData.videos as video}
+              <li class="border p-4 rounded-lg">
+                <p class="text-lg font-bold">
+                  Name: {video.video_name.replace(".mp4", "")}
+                </p>
+                <p class="container_text">Description: {video.description}</p>
+                <p>Location: {video.country ? video.country + ', ' : ''}{video.city ? video.city : 'Unknown'}</p>
+          
+                <div class="flex justify-between items-center mt-2">
+                  <div>
+                    <button
+                      on:click={() => selectVideoName(video.video_name)}
+                      class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2.5 px-4 rounded"
+                    >
+                      Select
+                    </button>
+                    <button
+                      on:click={() => handleUpVoteClick(video, userData.username)}
+                      class:selected={userData.upvotes.includes(video.video_name)}
+                      class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded"
+                    >
+                    {#if isUpvoted(video.video_name)}
+                    <div class="flex items-center">
+                      <i class="fas fa-thumbs-up text-white"></i> 
+                      <p class="ml-2 text-sm">{video.nr_likes}</p>
+                    </div>
+                  {:else}
+                    <div class="flex items-center">
+                      <i class="far fa-thumbs-up text-white"></i> 
+                      <p class="ml-2 text-sm"> {video.nr_likes}</p>
+                    </div>
+                  {/if}
+                    </button>
+                  </div>
+                </div>
+              </li>
+            {/each}
+          </ul>
+        </div>
+      {:else}
+        <p class="text-gray-500">No videos available.</p>
+      {/if}
+    {/if}
+  </div>
+</div>
+  
+
+  <!-- Comments Section -->
+  <div class="w-full md:w-1/3 lg:w-1/3 pr-4 ">
+  <div class="border-4 border-double border-indigo-800 flex justify-center  max-h-9">
+    <h2 class="text-lg font-bold mb-4 text-center">Comments</h2>
+  </div>
+
+  <div class=" mb-8 border-l-4 border-r-4 border-b-4 border-double border-indigo-800 max-h-96 overflow-y-auto container_comments">
+    {#if comments}
+      <div class="overflow-y-auto max-h-96 container_comments p-4 container_comments">
+        <input
+          type="text"
+          bind:value={newComment}
+          placeholder="Add your comment here"
+          class="w-full mb-4 p-2 border border-gray-300 rounded"
+          maxlength="200"
+        />
+        <button 
+          on:click={handleCommentButtonClick}
+          class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mb-4 w-full"
+          disabled={newComment.trim().length === 0}
+        >
+          Submit Comment
+        </button>
+        {#if comments.length > 0}
+          {#each comments as comment}
+            <div class="comment mb-4 p-4 border rounded-lg ">
+              <div class="flex items-center mb-2 "
+              style="max-width: fit-content;"
+              on:click={() => redirectToUserProfile(comment.username) }
+              role="button"
+              tabindex="0"
+              on:keypress={no_keypress}
+              >
+                <img
+                  src={comment.profile_picture}
+                  alt=""
+                  class="w-12 h-12 rounded-full"
+        
+                />
+                <div class="ml-4">
+                  <p class="font-bold" >{comment.username} </p>
+                  <p class="text-sm text-gray-600">{timeAgo(comment.timestamp)}</p>
+                </div>
+              </div>
+              <p class="mb-2 container_text">{comment.comment}</p>
+              {#if username === comment.username}
+                <button 
+                  on:click={() => handleDeleteComment(comment)}
+                  class="text-red-500 hover:underline"
+                >
+                  Delete
+                </button>
+              {/if}
+            </div>
+          {/each}
+        {:else}
+          <p class="text-gray-500">No comments available.</p>
+        {/if}
+   
+      </div>
+      {:else}
+      <div class="overflow-y-auto max-h-96 container_comments p-4">
+        <p class="text-gray-500">Select a video for comments to appear.</p>
+      </div>
+    {/if}
+  </div>
+</div>
+
+</div>
+</div>
+
+
+<!-- Map and Video Section-->
+<div class="ml-48 mt-8 flex flex-col">
+  
+  <div class="bg-gray-200 rounded-lg p-4 max-w-screen-lg mx-auto">
+    <div id="info" class="flex justify-center gap-8">
+
   <p id="speed">Speed:</p>
   <p id="city">City:</p>
   <p id="country">Country:</p>
 </div>
+</div>
 
-<div style="display: flex; align-items: stretch; justify-content: center;">
-  <div
-    id="map"
-    style="width: 500px; height: 500px; border: 1px solid #000;"
-  ></div>
 
-  <video
-    id="video"
-    controls
-    style="max-width: 600px; height: 500px; background-color:#3b3b3b;"
-  >
+<div class="flex justify-center">
+  <div id="map" class="w-1/2 border border-black" style="height: 500px;"></div>
+
+  <video id="video" controls class="w-1/2 h-500 bg-neutral-800" >
     <track kind="captions" src={captionsUrl} srclang="en" label="English" />
     {#if cloud_videoUrl}
       <source src={cloud_videoUrl} type="video/mp4" />
@@ -437,34 +611,5 @@
   </video>
 </div>
 
-<!-- Display comments -->
-{#if comments}
-  <h2>Comments:</h2>
-  <input
-    type="text"
-    bind:value={newComment}
-    placeholder="Add your comment here"
-  />
-  <button on:click={handleCommentButtonClick}>Submit Comment</button>
-  {#if comments.length > 0}
-    <p></p>
-    {#each comments as comment}
-      <div class="comment">
-        <img
-          src={comment.profile_picture}
-          alt=""
-          style="width: 50px; height: 50px; display: inline-block; vertical-align: middle;"
-        />
-        <p style="display: inline-block; vertical-align: middle;">
-          {comment.username} - {timeAgo(comment.timestamp)}
-        </p>
-        <p>{comment.comment}</p>
-        {#if username === comment.username}
-          <button on:click={() => handleDeleteComment(comment)}>Delete</button>
-        {/if}
-      </div>
-    {/each}
-  {:else}
-    <p>No comments available.</p>
-  {/if}
-{/if}
+</div>
+
