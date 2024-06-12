@@ -728,6 +728,7 @@ alt="Logo"
                     <p class="text-lg font-bold">
                       Name: {video.video_name.replace(".mp4", "")}
                     </p>
+                    <p class="text-sm text-gray-600">{timeAgo(video.timestamp)}</p>
                     <p class="container_text">
                       Description: {video.description}
                     </p>
@@ -870,11 +871,14 @@ alt="Logo"
   </div>
 
   <div class="flex justify-center">
-    <div
-      id="map"
-      class="w-1/2 border border-black"
-      style="height: 500px;"
-    ></div>
+    {#if videoName ===""}
+  <div class="relative w-1/2" style="height: 500px;">
+    <div class="absolute inset-0 border border-black map-placeholder" ></div>
+    <div class="absolute inset-0 bg-teal-100 bg-opacity-50"></div>
+</div>
+  {:else}
+  <div id="map" class="w-1/2 border border-black" style="height: 500px;"></div>
+{/if}
 
     <video id="video" controls class="w-1/2 h-500 bg-neutral-800">
       <track kind="captions" src={captionsUrl} srclang="en" label="English" />

@@ -23,6 +23,7 @@ interface Video {
   description: string,
   image_link: string,
   username: string,
+  timestamp : string,
 }
 
 interface User {

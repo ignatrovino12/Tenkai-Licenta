@@ -66,7 +66,7 @@
 
     if (typeof window !== "undefined") {
       //gpx window
-
+      
       //video window
       video = document.getElementById("video") as HTMLVideoElement;
 
@@ -453,7 +453,7 @@ alt="Logo"
         {:else}
           <p class="text-gray-500">User does not have a picture.</p>
         {/if}
-        <p class="text-lg font-bold ml-4">Videos {userData.username} </p>
+        <p class="text-lg font-bold ml-2">Profile {userData.username} </p>
       </div>
     {/if}
   </div>
@@ -477,8 +477,10 @@ alt="Logo"
                 <p class="text-lg font-bold">
                   Name: {video.video_name.replace(".mp4", "")}
                 </p>
+                <p class="text-sm text-gray-600">{timeAgo(video.timestamp)}</p>
                 <p class="container_text">Description: {video.description}</p>
                 <p class="container_text">Location: {video.country ? video.country + ', ' : ''}{video.city ? video.city : 'Unknown'}</p>
+
           
                 <div class="flex justify-between items-center mt-2">
                   <div>
@@ -605,7 +607,15 @@ alt="Logo"
 
 
 <div class="flex justify-center">
+  {#if videoName ===""}
+  <div class="relative w-1/2" style="height: 500px;">
+    <div class="absolute inset-0 border border-black map-placeholder" ></div>
+    <div class="absolute inset-0 bg-teal-100 bg-opacity-50"></div>
+</div>
+  {:else}
   <div id="map" class="w-1/2 border border-black" style="height: 500px;"></div>
+{/if}
+
 
   <video id="video" controls class="w-1/2 h-500 bg-neutral-800" >
     <track kind="captions" src={captionsUrl} srclang="en" label="English" />

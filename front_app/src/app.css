@@ -60,3 +60,7 @@
   box-shadow: 0 0 0 5px rgba(255, 255, 255, 0.7);
 }
 
+.map-placeholder {
+  background: url('/landscape.png') no-repeat center center;
+  background-size: cover;
+}

@@ -158,3 +158,4 @@ GOOGLE_APPLICATION_CREDENTIALS = os.environ.get('GOOGLE_APPLICATION_CREDENTIALS'
 current_directory = os.path.dirname(os.path.abspath(__file__))
 service_account_path = os.path.join(current_directory, '..', 'ServiceKeyGoogleCloud.json')
 os.environ['GOOGLE_APPLICATION_CREDENTIALS']=service_account_path  
+

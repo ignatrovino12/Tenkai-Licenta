@@ -221,6 +221,7 @@ def profile_view(request, username):
                     'city': video.city,
                     'nr_likes': video.nr_likes,
                     'description': video.description,
+                    'timestamp': video.timestamp,
                 })
 
             # likes/upvotes for the user
@@ -508,7 +509,8 @@ def display_search_videos(request):
                     'nr_likes': video.nr_likes,
                     'description': video.description,
                     'image_link': image_link,
-                    'username': user_profile.user.username
+                    'username': user_profile.user.username,
+                    'timestamp':video.timestamp,
                 })
 
             # send upvotes
