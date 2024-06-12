@@ -448,12 +448,15 @@
   />
 </svelte:head>
 
-<!-- Taskbar -->
+<!-- Navbar -->
 
 <div
   class="h-screen w-48 bg-gray-800 fixed top-0 left-0 flex flex-col items-center py-4 shadow-lg"
 >
+
   <div class="flex flex-col items-center mt-4">
+
+
     <div class="mb-8">
       {#if profilePicture}
         <img
@@ -501,7 +504,13 @@
     >
       <i class="fas fa-user-plus mr-2"></i>Sign up
     </button>
+    
   </div>
+  <img
+src="logo.png"
+alt="Logo"
+ class="w-36 h-36 object-contain mt-auto mb-4"
+/>
 </div>
 
 <!-- Page Loadout -->

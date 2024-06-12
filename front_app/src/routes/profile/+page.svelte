@@ -293,7 +293,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 </svelte:head>
 
-<!-- Taskbar -->
+<!-- Navbar -->
 
 <div
   class="h-screen w-48 bg-gray-800 fixed top-0 left-0 flex flex-col items-center py-4 shadow-lg"
@@ -347,6 +347,11 @@
       <i class="fas fa-user-plus mr-2"></i>Sign up
     </button>
   </div>
+  <img
+  src="/logo.png"
+  alt="Logo"
+   class="w-36 h-36 object-contain mt-auto mb-4"
+  />
 </div>
 
 <!-- Profile -->
@@ -438,7 +443,7 @@
       {#each videos as video}
         <li class="flex justify-between items-center p-2 bg-gray-100 rounded">
           <div class="flex-grow max-w-3/4">
-            <p class="text-sm break-words">
+            <p class="text-sm break-words container_text ">
             Video Name: {video.video_name.replace(".mp4", "")} - Country: {video.country || "Unknown"}, City: {video.city || "Unknown"}
           </p>
         </div>
