@@ -16,6 +16,8 @@ google-cloud-storage = "2.16.0"
 redis = "^5.0.4"
 psycopg2 = "^2.9.9"
 geopy = "^2.4.1"
+django-allauth = "^0.63.3"
+pyjwt = "^2.8.0"
 
 
 [build-system]

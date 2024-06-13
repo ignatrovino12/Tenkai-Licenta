@@ -1,6 +1,6 @@
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
-from django.http import JsonResponse
+from django.http import JsonResponse,HttpResponseRedirect
 import json
 import re
 from django.shortcuts import get_object_or_404
@@ -14,6 +14,9 @@ from django.db.models import Count, Sum, Value
 from django.db.models.functions import Coalesce
 from django.utils import timezone
 from datetime import timedelta
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import redirect, HttpResponse
+
 
 storage_client = storage.Client()
 bucket_name = "bucket-licenta-rovin"
@@ -532,3 +535,30 @@ def display_search_videos(request):
 
     else:
         return JsonResponse({'success': False, 'message': 'Invalid request method'}, status=400)
+    
+
+@login_required
+def set_cookies(request):
+    try:
+        # Retrieve CSRF token and username
+        profile = UserProfile.objects.get(user=request.user)
+        csrf_token = get_token(request)
+        username = request.user.username
+
+        response = JsonResponse({'message': 'Cookies set'})
+
+        response.set_cookie('csrftoken', csrf_token, max_age=3600, httponly=False, samesite='None', secure=True)
+        response.set_cookie('username', username, max_age=3600, httponly=False, samesite='None', secure=True)
+
+        redirect_response = HttpResponseRedirect('http://localhost:5173/home')
+        
+        for cookie_name, cookie_value in response.cookies.items():
+            redirect_response.set_cookie(cookie_name, cookie_value.value, max_age=cookie_value['max-age'], httponly=cookie_value['httponly'], samesite=cookie_value['samesite'])
+
+        # Return the redirect response
+        return redirect_response
+    
+    except UserProfile.DoesNotExist:
+        return JsonResponse({'error': 'UserProfile does not exist'}, status=404)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)

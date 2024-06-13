@@ -48,6 +48,11 @@
       console.error("There was a problem with the fetch operation:", error);
     }
   }
+
+
+  async function handleGoogleLogin() {
+    window.location.href = 'http://127.0.0.1:8000/accounts/google/login/';
+  }
 </script>
 
 <svelte:head>
@@ -127,6 +132,12 @@
         >
           Sign Up
         </button>
+        <button
+        type="button"
+        class="w-full bg-red-500 text-white py-2 rounded-lg hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-400 mt-4"
+        on:click={handleGoogleLogin}
+      >
+        Sign Up with Google
       </form>
       <div class="mt-6 text-center">
         <p class="text-gray-600">

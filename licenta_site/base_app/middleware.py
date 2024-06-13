@@ -9,7 +9,7 @@ class CSRFMiddleware:
 
     def __call__(self, request):
         # Check if the request is for a specific URL or view
-        if request.path == '/login/' or request.path=="/signup/" or request.path.startswith('/admin/') or request.path=="/convert_gpx/" :
+        if request.path == '/login/' or request.path=="/signup/" or request.path.startswith('/admin/') or request.path=="/convert_gpx/" or request.path=="/set_cookies/" or request.path.startswith('/accounts') :
             # Skip CSRF token verification for public URLs/views
             return self.get_response(request)
 

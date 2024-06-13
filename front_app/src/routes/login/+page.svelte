@@ -61,6 +61,10 @@
   }
 
   function no_keypress() {}
+
+  function handleGoogleLogin() {
+    window.location.href = 'http://127.0.0.1:8000/accounts/google/login/';
+  }
 </script>
 
 
@@ -119,6 +123,9 @@
         
         <button type="submit" class="w-full bg-indigo-500 text-white py-2 rounded-lg hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-400">
           Login
+        </button>
+        <button type="button" on:click={handleGoogleLogin} class="w-full bg-red-500 text-white py-2 rounded-lg hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-400 mt-4">
+          Login with Google
         </button>
       </form>
       <div class="mt-6 text-center">

@@ -39,6 +39,11 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "django.contrib.sites",
+    "allauth",
+    "allauth.account",
+    "allauth.socialaccount",
+    "allauth.socialaccount.providers.google",
     "base_app",
     "gpx_app",
 ]
@@ -53,6 +58,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    'allauth.account.middleware.AccountMiddleware',
     
 ]
 
@@ -159,3 +165,24 @@ current_directory = os.path.dirname(os.path.abspath(__file__))
 service_account_path = os.path.join(current_directory, '..', 'ServiceKeyGoogleCloud.json')
 os.environ['GOOGLE_APPLICATION_CREDENTIALS']=service_account_path  
 
+# GOOGLE AUTHENTIFICATION AND ALLAUTH
+
+AUTHENTICATION_BACKENDS = (
+    'django.contrib.auth.backends.ModelBackend',
+    'allauth.account.auth_backends.AuthenticationBackend',
+)
+
+SITE_ID = 1  
+LOGIN_REDIRECT_URL = 'http://127.0.0.1:8000/set_cookies/' 
+LOGOUT_REDIRECT_URL = 'http://localhost:5173/login'
+
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+
+        'APP': {
+            'client_id': '725388359354-5l2b7m9phvbc3cpk5g5ls2uvqmj26n5h.apps.googleusercontent.com',
+            'secret': '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',
+            'key': ''
+        }
+    }
+}

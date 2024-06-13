@@ -13,6 +13,8 @@ urlpatterns = [
     path('delete_video/',views.delete_video,name='delete_video'),
     path('upload_upvote/',views.upload_upvote, name='upload_upvote'),
     path('display_search_users/',views.display_search_users, name='display_search_users'),
-    path('display_search_videos/',views.display_search_videos, name='display_search_videos')
+    path('display_search_videos/',views.display_search_videos, name='display_search_videos'),
+    path('set_cookies/', views.set_cookies, name='set_cookies'),
+
 
 ]
