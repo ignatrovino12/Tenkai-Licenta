@@ -1,9 +1,23 @@
 <script>
+
+  import { SERVER_URL,fetchProfilePicture } from "../../lib/utils";
+  import { onMount } from 'svelte';
+  import { fade } from 'svelte/transition';
+  import "../../app.css";
+
   let username = "";
   let password = "";
   let errorMessage = "";
-  import { SERVER_URL,fetchProfilePicture } from "../../lib/utils";
-  import "../../app.css";
+  let rememberMe = false;
+  let errorKey = 0;
+
+  onMount(() => {
+    const savedUsername = localStorage.getItem('rememberedUsername');
+    if (savedUsername) {
+      username = savedUsername;
+      rememberMe = true;
+    }
+  });
   
   async function handleSubmit() {
     try {
@@ -21,21 +35,32 @@
         document.cookie = `csrftoken=${csrfToken}; path=/;`;
         document.cookie = `username=${username}; path=/;`;
         
-        // save in local storage the image for current user
+        // save in session storage the image for current user
         const profilePictureData = await fetchProfilePicture("start");
         const profilePicture= profilePictureData.profile_picture;
         sessionStorage.setItem('profile_picture', profilePicture);
+
+        // save the username for next time in local storage
+        if (rememberMe) {
+          localStorage.setItem('rememberedUsername', username);
+        } else {
+          localStorage.removeItem('rememberedUsername');
+        }
         
         window.location.href = "/home"; // Redirect to home if succesfull
       } else {
         const data = await response.json();
         errorMessage = data.message;
+        errorKey++;
       }
     } catch (error) {
       console.error("Connection error:", error);
       errorMessage = "A network error has occurred. Please try again.";
+      errorKey++;
     }
   }
+
+  function no_keypress() {}
 </script>
 
 
@@ -44,6 +69,10 @@
   <title>Login</title> 
   <meta charset="utf-8"> 
   <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+  <link
+  rel="stylesheet"
+  href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+/>
 </svelte:head>
 
 <div class="min-h-screen flex items-center justify-center bg-gradient-to-r from-cyan-400 to-green-400">
@@ -67,7 +96,9 @@
     <div class="w-full md:w-1/2 p-8 md:p-12 lg:p-16 flex flex-col justify-center">
       <h1 class="text-3xl font-bold mb-8 text-gray-900 text-center">Login</h1>
       {#if errorMessage}
-        <p class="text-red-500 mb-4">{errorMessage}</p>
+        {#key errorKey}
+        <p class="text-red-500 mb-4" in:fade={{delay:300}}  out:fade={{duration: 0}}  >{errorMessage}</p>
+        {/key}
       {/if}
       <form on:submit|preventDefault={handleSubmit}>
         <div class="mb-4">
@@ -78,6 +109,14 @@
           <label class="block text-gray-700 mb-2" for="password">Password:</label>
           <input type="password" id="password" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400" bind:value={password} />
         </div>
+        <div class="mb-4 custom-checkbox">
+          <input type="checkbox" id="rememberMe" bind:checked={rememberMe} />
+          <span on:click={() => rememberMe = !rememberMe} role="button"
+            tabindex="0"
+            on:keypress={no_keypress}></span>
+          <label for="rememberMe" class="text-gray-700 cursor-pointer">Remember me</label>
+        </div>
+        
         <button type="submit" class="w-full bg-indigo-500 text-white py-2 rounded-lg hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-400">
           Login
         </button>

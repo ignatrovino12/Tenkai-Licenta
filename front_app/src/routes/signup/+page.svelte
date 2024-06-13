@@ -5,8 +5,10 @@
   let email = "";
   let error = "";
   let errorMessage = "";
+  let errorKey = 0;
   import { SERVER_URL,fetchProfilePicture } from "../../lib/utils";
   import "../../app.css";
+  import { fade } from 'svelte/transition';
 
   async function handleSubmit() {
     const formData = {
@@ -40,6 +42,7 @@
       } else {
         const data = await response.json();
         errorMessage = data.message;
+        errorKey++;
       }
     } catch (error) {
       console.error("There was a problem with the fetch operation:", error);
@@ -63,9 +66,11 @@
       <h1 class="text-3xl font-bold mb-8 text-gray-900 text-center">
         Create an account
       </h1>
-      {#if errorMessage}
-        <p class="text-red-500 mb-4">{errorMessage}</p>
-      {/if}
+    {#if errorMessage}
+      {#key errorKey}
+      <p class="text-red-500 mb-4" in:fade={{delay:300}}  out:fade={{duration: 0}} >{errorMessage}</p>
+      {/key}
+    {/if}
       <form on:submit|preventDefault={handleSubmit}>
         <div class="mb-4">
           <label class="block text-gray-700 mb-2" for="username"

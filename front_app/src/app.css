@@ -64,3 +64,42 @@
   background: url('/landscape.png') no-repeat center center;
   background-size: cover;
 }
+
+/* checkbox */
+
+.custom-checkbox {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.custom-checkbox input[type="checkbox"] {
+  display: none;
+}
+
+.custom-checkbox span {
+  width: 20px;
+  height: 20px;
+  display: inline-block;
+  border: 2px solid #4f46e5; /* indigo */
+  border-radius: 4px;
+  margin-right: 8px;
+  position: relative;
+}
+
+.custom-checkbox input[type="checkbox"]:checked + span {
+  background-color: #4f46e5; 
+}
+
+.custom-checkbox input[type="checkbox"]:checked + span::before {
+  content: "\f00c"; 
+  font-family: "Font Awesome 5 Free";
+  font-weight: 900;
+  color: white;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+
