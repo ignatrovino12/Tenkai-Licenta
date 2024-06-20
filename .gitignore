@@ -7,3 +7,4 @@ venv/
 .idea/
 Thumbs.db
 licenta_site/ServiceKeyGoogleCloud.json
+licenta_site/gpx_app/cloud_cors_config.py
