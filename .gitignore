@@ -6,5 +6,4 @@ venv/
 .vscode/
 .idea/
 Thumbs.db
-licenta_site/licenta_site/ServiceKeyGoogleCloud.json
-
+licenta_site/ServiceKeyGoogleCloud.json
