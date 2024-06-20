@@ -1,0 +1,10 @@
+licenta_site/licenta_site/secret_settings.py
+*.pyc
+__pycache__/
+env/
+venv/
+.vscode/
+.idea/
+Thumbs.db
+licenta_site/licenta_site/ServiceKeyGoogleCloud.json
+

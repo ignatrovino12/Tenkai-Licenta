@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 
 from pathlib import Path
+from .secret_settings import *
 import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -183,9 +184,9 @@ SOCIALACCOUNT_PROVIDERS = {
     'google': {
 
         'APP': {
-            'client_id': '725388359354-5l2b7m9phvbc3cpk5g5ls2uvqmj26n5h.apps.googleusercontent.com',
-            'secret': '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',
-            'key': ''
+            'client_id': GOOGLE_CLIENT_ID,
+            'secret': GOOGLE_SECRET,
+            'key': GOOGLE_KEY,
         }
     }
 }
