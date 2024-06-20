@@ -158,7 +158,7 @@ def update_credentials(request):
             user = User.objects.get(username=username)
 
             if not user.check_password(old_password):
-                return JsonResponse({'success': False, 'message': 'Old password is incorrect'}, status=400)
+                return JsonResponse({'success': False, 'message': 'Current password is incorrect'}, status=400)
             
             if password:
                 
@@ -547,13 +547,18 @@ def set_cookies(request):
 
         response = JsonResponse({'message': 'Cookies set'})
 
-        response.set_cookie('csrftoken', csrf_token, max_age=3600, httponly=False, samesite='None', secure=True)
-        response.set_cookie('username', username, max_age=3600, httponly=False, samesite='None', secure=True)
+        print(username)
+        print(csrf_token)
+        # response.set_cookie('csrftoken', csrf_token, max_age=3600, httponly=False, samesite='None', secure=True)
+        # response.set_cookie('username', username, max_age=3600, httponly=False, samesite='None', secure=True)
 
         redirect_response = HttpResponseRedirect('http://localhost:5173/home')
         
-        for cookie_name, cookie_value in response.cookies.items():
-            redirect_response.set_cookie(cookie_name, cookie_value.value, max_age=cookie_value['max-age'], httponly=cookie_value['httponly'], samesite=cookie_value['samesite'])
+        redirect_response.set_cookie('csrftoken', csrf_token, max_age=3600, httponly=True, samesite='None', secure=True)
+        redirect_response.set_cookie('username', username, max_age=3600, httponly=True, samesite='None', secure=True)
+
+        # for cookie_name, cookie_value in response.cookies.items():
+        #     redirect_response.set_cookie(cookie_name, cookie_value.value, max_age=cookie_value['max-age'], httponly=cookie_value['httponly'], samesite=cookie_value['samesite'])
 
         # Return the redirect response
         return redirect_response
@@ -562,3 +567,4 @@ def set_cookies(request):
         return JsonResponse({'error': 'UserProfile does not exist'}, status=404)
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
+    

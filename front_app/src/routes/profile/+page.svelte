@@ -229,6 +229,14 @@
   });
 
   async function handleSubmit() {
+
+    if (oldPassword === "") {
+      alert(
+        "Please complete the current password field",
+      );
+      return;
+    }
+
     if (password === "" && confirmPassword === "" && email === "") {
       alert(
         "Please complete at least the email or the password before sending",
@@ -461,6 +469,5 @@
     <p class="text-gray-500">No videos available.</p>
   {/if}
 </div>
-
 
 </div>

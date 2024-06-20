@@ -62,10 +62,42 @@
   let videos: Video[];
   let upvotes: Upvote[];
 
+
+  async function handleGoogleAuthentication(){
+    const response = await fetch(
+        `${SERVER_URL}/set_cookies/`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            credentials: "include",
+            // redirect: "follow",
+
+          },
+        );
+        
+        const data = await response.json();
+        console.log(data)
+        if (response.ok) {
+        document.cookie = `csrftoken=${data.csrf_token}; path=/;`;
+        document.cookie = `username=${data.username}; path=/;`;
+        
+
+        }
+
+  }
+
   onMount(async () => {
+    // handleGoogleAuthentication();
+
     username = get_cookie("username");
     const csrfToken = get_cookie("csrftoken");
-    const response = await is_logged(username, csrfToken);
+    // const response = await is_logged(username, csrfToken);
+    console.log(document.cookie)
+    console.log(username)
+    console.log(csrfToken)
+
 
     const isBrowser = typeof window !== "undefined";
 

@@ -44,8 +44,7 @@ async function update_map(waypoint: Waypoint_upload, map: any, lastWaypoint: Way
                         const absoluteCurrentTime = startTime + time;
                         const timeDifference = waypoint.time - lastWaypoint.time;
 
-                        const distance = Math.sqrt(Math.pow(waypoint.lat - lastWaypoint.lat, 2) + Math.pow(waypoint.lng - lastWaypoint.lng, 2));
-                        // const new_speed = distance / timeDifference;        
+                        const distance = Math.sqrt(Math.pow(waypoint.lat - lastWaypoint.lat, 2) + Math.pow(waypoint.lng - lastWaypoint.lng, 2));     
 
                         const ratio = (absoluteCurrentTime - lastWaypoint.time) / timeDifference;
 

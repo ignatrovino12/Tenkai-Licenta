@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     "allauth.socialaccount.providers.google",
     "base_app",
     "gpx_app",
+    "django_extensions",
 ]
 
 MIDDLEWARE = [
@@ -54,6 +55,7 @@ MIDDLEWARE = [
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     # "django.middleware.csrf.CsrfViewMiddleware",
+    "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "base_app.middleware.CSRFMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
@@ -174,6 +176,7 @@ AUTHENTICATION_BACKENDS = (
 
 SITE_ID = 1  
 LOGIN_REDIRECT_URL = 'http://127.0.0.1:8000/set_cookies/' 
+# LOGIN_REDIRECT_URL = 'http://localhost:5173/home'
 LOGOUT_REDIRECT_URL = 'http://localhost:5173/login'
 
 SOCIALACCOUNT_PROVIDERS = {
@@ -186,3 +189,5 @@ SOCIALACCOUNT_PROVIDERS = {
         }
     }
 }
+
+X_FRAME_OPTIONS = 'SAMEORIGIN'
