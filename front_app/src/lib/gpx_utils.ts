@@ -11,19 +11,26 @@ interface Waypoint_upload {
 }
 
 //FUNCTIONS
-function find_closest_waypoint(time: number, waypoints: Waypoint_upload[]): Waypoint_upload {
+function find_closest_waypoint(time: number, waypoints: Waypoint_upload[]): [Waypoint_upload,number] {
     time = time + waypoints[0].time
     let closestWaypoint = waypoints[0];
+    let closestIndex = 0;
+    let lastIndex =0;
     let closestTimeDiff = Math.abs(waypoints[0].time - time);
+    
     for (let i = 1; i < waypoints.length; i++) {
         const timeDiff = Math.abs(waypoints[i].time - time);
         
         if (timeDiff < closestTimeDiff) {
             closestWaypoint = waypoints[i];
             closestTimeDiff = timeDiff;
+            closestIndex = i;
         }
     }
-    return closestWaypoint;
+
+    if (closestIndex>0) {lastIndex=closestIndex-1}
+    else {lastIndex=closestIndex}
+    return [closestWaypoint,lastIndex];
 }
 
 async function update_map(waypoint: Waypoint_upload, map: any, lastWaypoint: Waypoint_upload, time : number, speed:number, zerowaypoint: Waypoint_upload): Promise<number> {
@@ -46,7 +53,8 @@ async function update_map(waypoint: Waypoint_upload, map: any, lastWaypoint: Way
 
                         const distance = Math.sqrt(Math.pow(waypoint.lat - lastWaypoint.lat, 2) + Math.pow(waypoint.lng - lastWaypoint.lng, 2));     
 
-                        const ratio = (absoluteCurrentTime - lastWaypoint.time) / timeDifference;
+                        let ratio = (absoluteCurrentTime - lastWaypoint.time) / timeDifference;
+                        ratio = Math.max(0, Math.min(1, ratio)); //ratio in [0,1], otherwise can be out of bounds 
 
                         const currentLat = lastWaypoint.lat + (waypoint.lat - lastWaypoint.lat) * ratio;
                         const currentLng = lastWaypoint.lng + (waypoint.lng - lastWaypoint.lng) * ratio;
@@ -55,7 +63,7 @@ async function update_map(waypoint: Waypoint_upload, map: any, lastWaypoint: Way
                         map.currentMarker = newMarker;
                         
                         // calculate speed
-                        const distanceInKm = distance * 111.32; // convert distance degrees to km
+                        const distanceInKm = distance * 111.1; // convert distance degrees to km
                         const timeDifferenceInHours = timeDifference / 3600;
                         const new_speed = parseFloat((distanceInKm / timeDifferenceInHours).toFixed(2));
                         resolve(new_speed);

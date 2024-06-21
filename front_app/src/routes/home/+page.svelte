@@ -123,10 +123,13 @@
 
           const currentTime = video.currentTime;
           if (waypoints && waypoints.length > 0) {
-            const currentWaypoint = find_closest_waypoint(
+            const currentArray= find_closest_waypoint(
               currentTime,
               waypoints,
             );
+            const currentWaypoint=currentArray[0];
+            lastWaypoint=waypoints[currentArray[1]];
+
             speed = await update_map(
               currentWaypoint,
               map,
@@ -135,9 +138,7 @@
               speed,
               waypoints[0],
             );
-            if (lastWaypoint !== currentWaypoint) {
-              lastWaypoint = currentWaypoint;
-            }
+  
             updateInfo(city, country, speed);
           }
         };
@@ -154,10 +155,13 @@
 
           const currentTime = video.currentTime;
           if (waypoints && waypoints.length > 0) {
-            const currentWaypoint = find_closest_waypoint(
+            const currentArray= find_closest_waypoint(
               currentTime,
               waypoints,
             );
+            const currentWaypoint=currentArray[0];
+            lastWaypoint=waypoints[currentArray[1]];
+            
             speed = await update_map(
               currentWaypoint,
               map,
@@ -166,9 +170,7 @@
               speed,
               waypoints[0],
             );
-            if (lastWaypoint !== currentWaypoint) {
-              lastWaypoint = currentWaypoint;
-            }
+
             updateInfo(city, country, speed);
           }
         };
