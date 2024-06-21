@@ -16,18 +16,30 @@ function find_closest_waypoint(time: number, waypoints: Waypoint_upload[]): [Way
     let closestWaypoint = waypoints[0];
     let closestIndex = 0;
     let lastIndex =0;
-    let closestTimeDiff = Math.abs(waypoints[0].time - time);
+    let closestTimeDiff = waypoints[0].time;
     
     for (let i = 1; i < waypoints.length; i++) {
-        const timeDiff = Math.abs(waypoints[i].time - time);
-        
-        if (timeDiff < closestTimeDiff) {
-            closestWaypoint = waypoints[i];
-            closestTimeDiff = timeDiff;
-            closestIndex = i;
-        }
-    }
 
+        if(time<=waypoints[i].time) {
+            const timeDiff = waypoints[i].time - time;
+            
+            if (timeDiff < closestTimeDiff) {
+                closestWaypoint = waypoints[i];
+                closestTimeDiff = timeDiff;
+                closestIndex = i;
+            }
+
+        }
+
+        // if time is not synchronized well till the end, make the waypoint stay at end
+        else if (time>waypoints[waypoints.length-1].time){
+            closestWaypoint=waypoints[waypoints.length-1];
+            closestIndex=waypoints.length-1;
+        }
+
+    }                                                                              
+                                                                              
+                                            
     if (closestIndex>0) {lastIndex=closestIndex-1}
     else {lastIndex=closestIndex}
     return [closestWaypoint,lastIndex];
