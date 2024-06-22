@@ -27,7 +27,7 @@ SECRET_KEY = DJANGO_SECRET_KEY
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["34.89.242.138"]
+ALLOWED_HOSTS = ["34.89.242.138","web","vladar34.xyz"]
 
 
 # Application definition
@@ -73,6 +73,8 @@ CORS_ALLOWED_ORIGINS = [
     'http://127.0.0.1:5173',
     'http://34.89.242.138',
     'http://34.89.242.138:8000',
+    'http://vladar34.xyz',
+    'http://vladar34.xyz:8000',
     
 ]
 CORS_ALLOW_CREDENTIALS = True
@@ -178,7 +180,7 @@ AUTHENTICATION_BACKENDS = (
 )
 
 SITE_ID = 1  
-LOGIN_REDIRECT_URL = 'http://34.89.242.138:8000/set_cookies/' 
+LOGIN_REDIRECT_URL = 'http://vladar34.xyz/home' 
 # LOGIN_REDIRECT_URL = 'http://localhost:5173/home'
 LOGOUT_REDIRECT_URL = 'http://localhost:5173/login'
 
@@ -189,7 +191,11 @@ SOCIALACCOUNT_PROVIDERS = {
             'client_id': GOOGLE_CLIENT_ID,
             'secret': GOOGLE_SECRET,
             'key': GOOGLE_KEY,
-        }
+        },
+
+        'AUTH_PARAMS': {
+            'access_type': 'online', 'redirect_uri': 'http://vladar34.xyz/accounts/google/login/callback',
+        },
     }
 }
 

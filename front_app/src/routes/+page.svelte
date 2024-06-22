@@ -4,7 +4,7 @@
 	import "../app.css";
 
 	function goToAdminPage() {
-	  navigate('http://34.89.242.138:8000/admin/');
+	  navigate('http://vladar34.xyz:8000/admin/');
 	}
 </script>
 
