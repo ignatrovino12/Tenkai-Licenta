@@ -38,8 +38,7 @@ function find_closest_waypoint(time: number, waypoints: Waypoint_upload[]): [Way
         }
 
     }                                                                              
-                                                                              
-                                            
+                                                                                                                      
     if (closestIndex>0) {lastIndex=closestIndex-1}
     else {lastIndex=closestIndex}
     return [closestWaypoint,lastIndex];
