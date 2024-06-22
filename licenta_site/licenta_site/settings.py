@@ -27,7 +27,7 @@ SECRET_KEY = "django-insecure-_33$r_96c37pspc%*ia=q*o2%xo3tp2a*rc1ft#llw35ih%f)1
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["34.89.242.138"]
 
 
 # Application definition
@@ -71,6 +71,8 @@ CORS_ALLOWED_ORIGINS = [
     'http://127.0.0.1:8000',
     'http://localhost:5173',
     'http://127.0.0.1:5173',
+    'http://34.89.242.138',
+    'http://34.89.242.138:8000',
     
 ]
 CORS_ALLOW_CREDENTIALS = True
@@ -176,7 +178,7 @@ AUTHENTICATION_BACKENDS = (
 )
 
 SITE_ID = 1  
-LOGIN_REDIRECT_URL = 'http://127.0.0.1:8000/set_cookies/' 
+LOGIN_REDIRECT_URL = 'http://34.89.242.138:8000/set_cookies/' 
 # LOGIN_REDIRECT_URL = 'http://localhost:5173/home'
 LOGOUT_REDIRECT_URL = 'http://localhost:5173/login'
 

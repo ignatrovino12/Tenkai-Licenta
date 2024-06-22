@@ -63,7 +63,7 @@
   function no_keypress() {}
 
   function handleGoogleLogin() {
-    window.location.href = 'http://127.0.0.1:8000/accounts/google/login/';
+    window.location.href = 'http://34.89.242.138:8000/accounts/google/login/';
   }
 </script>
 

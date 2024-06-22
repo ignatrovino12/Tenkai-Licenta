@@ -17,6 +17,20 @@ services:
     networks:
       - licenta-network
 
+  frontend:
+    build:
+      context: ../front_app/
+      dockerfile: Dockerfile
+    volumes:
+      - ../front_app/src:/app/src
+    ports:
+      - "80:5173"
+    depends_on:
+      - web
+    restart: always
+    networks:
+      - licenta-network
+
   celery:
     build:
       context: .

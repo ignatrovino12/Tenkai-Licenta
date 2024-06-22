@@ -33,7 +33,7 @@ interface User {
   image_link : string,
 }
 // FUNCTIONS
-const SERVER_URL = 'http://127.0.0.1:8000';
+const SERVER_URL = 'http://34.89.242.138:8000';
 
 
 function removeCookie(name: string) {
