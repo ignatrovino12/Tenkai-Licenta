@@ -6,8 +6,8 @@ from allauth.account.models import EmailAddress
 
 admin.site.register(UserProfile)
 
-admin.site.unregister(SocialAccount)
-admin.site.unregister(SocialApp)
-admin.site.unregister(SocialToken)
-admin.site.unregister(Site)
-admin.site.unregister(EmailAddress)
+# admin.site.unregister(SocialAccount)
+# admin.site.unregister(SocialApp)
+# admin.site.unregister(SocialToken)
+# admin.site.unregister(Site)
+# admin.site.unregister(EmailAddress)

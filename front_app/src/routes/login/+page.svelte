@@ -131,6 +131,9 @@
       <div class="mt-6 text-center">
         <p class="text-gray-600">Don't have an account yet? <a href="/signup" class="text-blue-500 hover:underline">Sign up here!</a></p>
       </div>
+      <div class="text-center">
+        <p class="text-gray-600"> <a href="/accounts/password/reset/" class="text-blue-500 hover:underline">Forgot password?</a></p>
+      </div>
     </div>
   </div>
 </div>
