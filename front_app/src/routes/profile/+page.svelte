@@ -11,6 +11,7 @@
     redirectToCurrentUserProfile,
     redirectToUpload,
     fetchProfilePicture,
+    removeCookie,
   } from "../../lib/utils";
 
   import { onMount } from "svelte";
@@ -92,6 +93,7 @@
       sessionStorage.setItem("profile_picture", profilePicture_copy);
 
       profilePicture = profilePicture_copy;
+      removeCookie('profile_picture')
     } else {
       const data = await response.json();
       alert(data.message);

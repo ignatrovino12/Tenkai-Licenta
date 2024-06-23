@@ -6,7 +6,7 @@
   let error = "";
   let errorMessage = "";
   let errorKey = 0;
-  import { SERVER_URL,fetchProfilePicture } from "../../lib/utils";
+  import { SERVER_URL,fetchProfilePicture,removeCookie } from "../../lib/utils";
   import "../../app.css";
   import { fade } from 'svelte/transition';
 
@@ -33,10 +33,11 @@
         document.cookie = `csrftoken=${csrfToken}; path=/;`;
         document.cookie = `username=${username}; path=/;`;
 
-        // save in local storage the image for current user
+        // save in session storage the image for current user
         const profilePictureData = await fetchProfilePicture("start");
         const profilePicture = profilePictureData.profile_picture;
         sessionStorage.setItem('profile_picture', profilePicture);
+        removeCookie('profile_picture')
 
         window.location.href = "/home"; // Redirect to home if succesfull
       } else {

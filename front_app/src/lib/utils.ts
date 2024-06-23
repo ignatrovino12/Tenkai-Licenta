@@ -329,7 +329,7 @@ async function handleUpVote(videoName:string,videoUser:string) {
 }
 
 // EXPORTS
-export { SERVER_URL,get_cookie, get_cookie_values ,logout_user,wait,timeAgo,deleteComment,handleUpVote }
+export { SERVER_URL,get_cookie, get_cookie_values ,logout_user,wait,timeAgo,deleteComment,handleUpVote,removeCookie }
 export { is_logged, downloadVideo,watch,handleCommentButton,fetchProfilePicture}
 export {redirectToHome,redirectToLogin,redirectToSignUp,redirectToProfile,redirectToCurrentUserProfile,redirectToUpload,redirectToUserProfile}
 export type {Comment,Upvote,Video,User }

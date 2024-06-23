@@ -1,6 +1,6 @@
 <script>
 
-  import { SERVER_URL,fetchProfilePicture } from "../../lib/utils";
+  import { SERVER_URL,fetchProfilePicture,removeCookie } from "../../lib/utils";
   import { onMount } from 'svelte';
   import { fade } from 'svelte/transition';
   import "../../app.css";
@@ -39,6 +39,7 @@
         const profilePictureData = await fetchProfilePicture("start");
         const profilePicture= profilePictureData.profile_picture;
         sessionStorage.setItem('profile_picture', profilePicture);
+        removeCookie('profile_picture')
 
         // save the username for next time in local storage
         if (rememberMe) {

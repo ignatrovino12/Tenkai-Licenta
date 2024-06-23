@@ -17,6 +17,8 @@ from datetime import timedelta
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, HttpResponse
 from allauth.account.models import EmailAddress
+import urllib.parse
+import base64
 
 
 storage_client = storage.Client()
@@ -98,7 +100,8 @@ def user_signup(request):
         return response
     else:
         return JsonResponse({'success': False, 'message': 'This method only supports POST requests'}, status=405)
-    
+
+
 def user_logout(request):
     if request.method == 'POST':
         try:
@@ -112,6 +115,7 @@ def user_logout(request):
 
             logout(request)
 
+            request.session.flush()
      
             return JsonResponse({'success': True, 'message': 'Logged out successfully'})
         except User.DoesNotExist:      
@@ -549,20 +553,40 @@ def set_cookies(request):
         username = request.user.username
         profile.csrf_token = csrf_token
         profile.save()
-
-        response = JsonResponse({'message': 'Cookies set'})
-
-        # response.set_cookie('csrftoken', csrf_token, max_age=3600, httponly=False, samesite='None', secure=True)
-        # response.set_cookie('username', username, max_age=3600, httponly=False, samesite='None', secure=True)
-
+        
+        # set cookies
         redirect_response = HttpResponseRedirect('https://vladar34.xyz/home')
         
         redirect_response.set_cookie('csrftoken', csrf_token, max_age=3600)
         redirect_response.set_cookie('username', username, max_age=3600)
 
-        # for cookie_name, cookie_value in response.cookies.items():
-        #     redirect_response.set_cookie(cookie_name, cookie_value.value, max_age=cookie_value['max-age'], httponly=cookie_value['httponly'], samesite=cookie_value['samesite'])
+        # set profilepicture
+        has_picture = profile.has_picture
 
+        if has_picture:
+            file_path = f'images/{request.user.id}/ppicture.png'
+        else:
+            file_path = f'images/0/ppicture.png'
+
+
+        blob = storage_client.bucket(bucket_name).blob(file_path)
+        current_datetime = datetime.now()
+
+    
+        expiration_time = current_datetime + timedelta(hours=16)
+ 
+        image_link = blob.generate_signed_url(
+            version='v4',
+            expiration=expiration_time,
+            method='GET',
+        )
+
+        # encode image before setting it as cookie
+        encoded_image_link = base64.urlsafe_b64encode(image_link.encode('utf-8')).decode('utf-8')
+        encoded_image_link = urllib.parse.quote(encoded_image_link)
+
+        redirect_response.set_cookie('profile_picture',encoded_image_link, max_age=300)
+        
         # Return the redirect response
         return redirect_response
     

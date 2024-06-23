@@ -93,16 +93,28 @@
 
     username = get_cookie("username");
     const csrfToken = get_cookie("csrftoken");
-    // const response = await is_logged(username, csrfToken);
-    console.log(document.cookie)
-    console.log(username)
-    console.log(csrfToken)
+    const response = await is_logged(username, csrfToken);
+
+    // Read the custom header value
+    let profilePictureGoogle= get_cookie("profile_picture"); 
+  
+    if (profilePictureGoogle) {
+      // decode profile picture base64
+      const decoded = decodeURIComponent(profilePictureGoogle);
+      const replaced = decoded.replace(/-/g, '+').replace(/_/g, '/');
+      const result = atob(replaced);
+      profilePictureGoogle = decodeURIComponent(result);
+
+      sessionStorage.setItem('profile_picture', profilePictureGoogle);
+      console.log(profilePictureGoogle);
+    }
 
 
     const isBrowser = typeof window !== "undefined";
 
     if (isBrowser) {
       profilePicture = sessionStorage.getItem("profile_picture") || "";
+      console.log(profilePicture);
     }
 
     if (typeof window !== "undefined") {
