@@ -12,8 +12,13 @@ export default defineConfig({
 		  "Cross-Origin-Embedder-Policy": "require-corp",
 		},
 		 proxy:{
-			'/accounts': 'http://web:8000/',
-			
+			'/accounts': {
+				target: 'http://web:8000/',
+				changeOrigin: true,
+			},
+			'/api': 'http://web:8000/',
+			'/admin': 'http://web:8000/',
+			'/static': 'http://web:8000/',
 		 }
 	  },
 });

@@ -4,7 +4,7 @@
 	import "../app.css";
 
 	function goToAdminPage() {
-	  navigate('http://vladar34.xyz:8000/admin/');
+		window.location.href = 'https://vladar34.xyz/admin/';
 	}
 </script>
 

@@ -27,7 +27,7 @@ SECRET_KEY = DJANGO_SECRET_KEY
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["34.89.242.138","web","vladar34.xyz"]
+ALLOWED_HOSTS = ["vladar34.xyz", "web"]
 
 
 # Application definition
@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "django.contrib.sites",
+    "allauth_ui",
     "allauth",
     "allauth.account",
     "allauth.socialaccount",
@@ -48,10 +49,11 @@ INSTALLED_APPS = [
     "base_app",
     "gpx_app",
     "django_extensions",
+    "widget_tweaks",
 ]
 
 MIDDLEWARE = [
-    "corsheaders.middleware.CorsMiddleware",
+    # "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -65,6 +67,8 @@ MIDDLEWARE = [
     
 ]
 
+CSRF_TRUSTED_ORIGINS = ['https://vladar34.xyz']
+
 # CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:8000',
@@ -75,6 +79,8 @@ CORS_ALLOWED_ORIGINS = [
     'http://34.89.242.138:8000',
     'http://vladar34.xyz',
     'http://vladar34.xyz:8000',
+    'https://vladar34.xyz',
+    'https://vladar34.xyz:8000',
     
 ]
 CORS_ALLOW_CREDENTIALS = True
@@ -149,7 +155,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
-STATIC_URL = "static/"
+STATIC_URL = "static-django/"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
@@ -180,9 +186,9 @@ AUTHENTICATION_BACKENDS = (
 )
 
 SITE_ID = 1  
-LOGIN_REDIRECT_URL = 'http://vladar34.xyz/home' 
+LOGIN_REDIRECT_URL = 'https://vladar34.xyz/api/set_cookies/' 
 # LOGIN_REDIRECT_URL = 'http://localhost:5173/home'
-LOGOUT_REDIRECT_URL = 'http://localhost:5173/login'
+LOGOUT_REDIRECT_URL = 'https://vladar34.xyz/login'
 
 SOCIALACCOUNT_PROVIDERS = {
     'google': {
@@ -193,10 +199,30 @@ SOCIALACCOUNT_PROVIDERS = {
             'key': GOOGLE_KEY,
         },
 
-        'AUTH_PARAMS': {
-            'access_type': 'online', 'redirect_uri': 'http://vladar34.xyz/accounts/google/login/callback',
-        },
+        # 'AUTH_PARAMS': {
+        #     'access_type': 'online', 'redirect_uri': 'https://vladar34.xyz/accounts/google/login/callback/',
+        # },
+        'OAUTH_PKCE_ENABLED': True,
+        'SCOPE': [
+                    'profile',
+                    'email',
+                ],
     }
 }
 
 X_FRAME_OPTIONS = 'SAMEORIGIN'
+
+USE_X_FORWARDED_HOST = True
+USE_X_FORWARDED_PORT = True
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
+
+# SENDGRID
+
+EMAIL_HOST = 'smtp.sendgrid.net'
+EMAIL_HOST_USER = 'apikey'
+EMAIL_HOST_PASSWORD = SENDGRID_KEY
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+DEFAULT_FROM_EMAIL = 'licenta@vladar34.xyz'

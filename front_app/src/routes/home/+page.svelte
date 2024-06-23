@@ -739,7 +739,7 @@ alt="Logo"
         class="mb-8 border-l-4 border-r-4 border-b-4 border-double border-indigo-800"
       >
         {#if videos && upvotes}
-          {#if videos.length > 0}
+          {#if (videos?.length || 0) > 0}
             <div class="overflow-y-auto max-h-96 container_videos">
               <ul class="space-y-4">
                 {#each videos as video}

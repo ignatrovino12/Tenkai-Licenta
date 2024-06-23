@@ -16,6 +16,7 @@ from django.utils import timezone
 from datetime import timedelta
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, HttpResponse
+from allauth.account.models import EmailAddress
 
 
 storage_client = storage.Client()
@@ -89,6 +90,8 @@ def user_signup(request):
         profile, created = UserProfile.objects.get_or_create(user=user)
         profile.csrf_token = csrf_token
         profile.save()
+
+        EmailAddress.objects.create(user=user, email=email, verified=True, primary=False)
 
         # send csrf-token to frontend
         response = JsonResponse({'success': True, 'message': 'User created successfully!', 'csrf_token': csrf_token},status=200)
@@ -544,18 +547,18 @@ def set_cookies(request):
         profile = UserProfile.objects.get(user=request.user)
         csrf_token = get_token(request)
         username = request.user.username
+        profile.csrf_token = csrf_token
+        profile.save()
 
         response = JsonResponse({'message': 'Cookies set'})
 
-        print(username)
-        print(csrf_token)
         # response.set_cookie('csrftoken', csrf_token, max_age=3600, httponly=False, samesite='None', secure=True)
         # response.set_cookie('username', username, max_age=3600, httponly=False, samesite='None', secure=True)
 
-        redirect_response = HttpResponseRedirect('http://localhost:5173/home')
+        redirect_response = HttpResponseRedirect('https://vladar34.xyz/home')
         
-        redirect_response.set_cookie('csrftoken', csrf_token, max_age=3600, httponly=True, samesite='None', secure=True)
-        redirect_response.set_cookie('username', username, max_age=3600, httponly=True, samesite='None', secure=True)
+        redirect_response.set_cookie('csrftoken', csrf_token, max_age=3600)
+        redirect_response.set_cookie('username', username, max_age=3600)
 
         # for cookie_name, cookie_value in response.cookies.items():
         #     redirect_response.set_cookie(cookie_name, cookie_value.value, max_age=cookie_value['max-age'], httponly=cookie_value['httponly'], samesite=cookie_value['samesite'])

@@ -446,7 +446,7 @@
 <!-- Delete Videos -->
 <div class="container_videos    mt-8 p-4 border rounded shadow-lg h-96 overflow-y-scroll" style="width:600px;">
   <h1 class="text-xl font-bold mb-4">Delete videos</h1>
-  {#if videos.length > 0}
+  {#if (videos?.length || 0) > 0}
     <ul class="space-y-4">
       {#each videos as video}
         <li class="flex justify-between items-center p-2 bg-gray-100 rounded">

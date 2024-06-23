@@ -35,7 +35,7 @@
 
         // save in local storage the image for current user
         const profilePictureData = await fetchProfilePicture("start");
-        const profilePicture= profilePictureData.profile_picture;
+        const profilePicture = profilePictureData.profile_picture;
         sessionStorage.setItem('profile_picture', profilePicture);
 
         window.location.href = "/home"; // Redirect to home if succesfull
@@ -51,7 +51,7 @@
 
 
   async function handleGoogleLogin() {
-    window.location.href = 'http://vladar34.xyz/accounts/google/login/';
+    window.location.href = 'https://vladar34.xyz/accounts/google/login/';
   }
 </script>
 

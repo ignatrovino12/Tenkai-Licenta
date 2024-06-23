@@ -63,7 +63,7 @@
   function no_keypress() {}
 
   function handleGoogleLogin() {
-    window.location.href = 'http://vladar34.xyz/accounts/google/login/';
+    window.location.href = 'https://vladar34.xyz/accounts/google/login/';
   }
 </script>
 

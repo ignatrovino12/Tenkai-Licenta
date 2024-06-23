@@ -8,12 +8,19 @@ services:
     command: python manage.py runserver 0.0.0.0:8000
     volumes:
       - .:/code
-    ports:
-      - "8000:8000"
     depends_on:
       - db
       - redis 
     restart: always
+    networks:
+      - licenta-network
+
+  nginx:
+    image: nginx
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf
+    ports:
+      - "80:80"
     networks:
       - licenta-network
 
@@ -23,8 +30,6 @@ services:
       dockerfile: Dockerfile
     volumes:
       - ../front_app/src:/app/src
-    ports:
-      - "80:5173"
     depends_on:
       - web
     restart: always

@@ -23,6 +23,8 @@ pydotplus = "2.0.2"
 pyparsing = "^3.1.2"
 pydot = "^2.0.0"
 graphviz = "^0.20.3"
+django-allauth-ui = "^0.3.8"
+django-widget-tweaks = "^1.5.0"
 
 
 [build-system]
