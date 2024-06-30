@@ -208,7 +208,8 @@ async function handleCommentButton(newComment:string,videoName:string) {
   });
 
   const data = await NewCommentResponse.json();
-  return data.success
+  
+  return [data.success,data.timestamp]
 
 
 }
@@ -238,6 +239,10 @@ function timeAgo(timestamp:string) {
   interval = Math.floor(seconds / 60);
   if (interval >= 1) {
     return `${interval} minutes ago`;
+  }
+
+  if (Math.floor(seconds) < 0) {
+    return `0 seconds ago`
   }
   return `${Math.floor(seconds)} seconds ago`;
 }

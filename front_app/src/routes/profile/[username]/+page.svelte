@@ -288,7 +288,7 @@
   async function handleCommentButtonClick() {
     try {
       const success = await handleCommentButton(newComment, videoName);
-      if (success) {
+      if (success[0]) {
         if (current_user_picture === "") {
           const profilePictureData = await fetchProfilePicture("not_start");
           current_user_picture = profilePictureData.profile_picture;
@@ -296,7 +296,7 @@
 
         comments = [
           {
-            timestamp: new Date().toISOString(),
+            timestamp : success[1],
             comment: newComment,
             username: username,
             profile_picture: current_user_picture,

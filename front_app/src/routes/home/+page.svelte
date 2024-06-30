@@ -23,6 +23,7 @@
     deleteComment,
     fetchProfilePicture,
     timeAgo,
+    removeCookie,
   } from "../../lib/utils";
   import { find_closest_waypoint, update_map } from "../../lib/gpx_utils";
   import type { Waypoint_upload } from "../../lib/gpx_utils";
@@ -78,7 +79,7 @@
         );
         
         const data = await response.json();
-        console.log(data)
+        // console.log(data)
         if (response.ok) {
         document.cookie = `csrftoken=${data.csrf_token}; path=/;`;
         document.cookie = `username=${data.username}; path=/;`;
@@ -106,7 +107,8 @@
       profilePictureGoogle = decodeURIComponent(result);
 
       sessionStorage.setItem('profile_picture', profilePictureGoogle);
-      console.log(profilePictureGoogle);
+      // console.log(profilePictureGoogle);
+      removeCookie('profile_picture');
     }
 
 
@@ -114,7 +116,7 @@
 
     if (isBrowser) {
       profilePicture = sessionStorage.getItem("profile_picture") || "";
-      console.log(profilePicture);
+      // console.log(profilePicture);
     }
 
     if (typeof window !== "undefined") {
@@ -442,7 +444,7 @@
   async function handleCommentButtonClick() {
     try {
       const success = await handleCommentButton(newComment, videoName);
-      if (success) {
+      if (success[0]) {
         if (current_user_picture === "") {
           const profilePictureData = await fetchProfilePicture("not_start");
           current_user_picture = profilePictureData.profile_picture;
@@ -450,7 +452,8 @@
 
         comments = [
           {
-            timestamp: new Date().toISOString(),
+            // timestamp: new Date().toISOString(),
+            timestamp : success[1],
             comment: newComment,
             username: username,
             profile_picture: current_user_picture,

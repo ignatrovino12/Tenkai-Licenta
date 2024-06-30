@@ -396,14 +396,16 @@ def make_comment(request):
 
             user_profile = UserProfile.objects.get(user__username=video_user)
             video = Video.objects.get(video_name=video_name)
+            current_timestamp = timezone.now()
 
             Comment.objects.create(
                 video_id=video,
                 user_profile=user_profile,
-                comment=new_comment
+                comment=new_comment,
+                timestamp=current_timestamp 
             )
 
-            return JsonResponse({'success': True, 'message': 'Comment created successfully'}, status=200)
+            return JsonResponse({'success': True, 'message': 'Comment created successfully', 'timestamp' : current_timestamp}, status=200)
 
         except json.JSONDecodeError:
             return JsonResponse({'success': False, 'message': 'Invalid JSON data'}, status=400)

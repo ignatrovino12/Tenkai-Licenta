@@ -93,7 +93,7 @@
       sessionStorage.setItem("profile_picture", profilePicture_copy);
 
       profilePicture = profilePicture_copy;
-      removeCookie('profile_picture')
+      // removeCookie('profile_picture')
     } else {
       const data = await response.json();
       alert(data.message);

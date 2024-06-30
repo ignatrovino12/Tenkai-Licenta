@@ -37,7 +37,6 @@
         const profilePictureData = await fetchProfilePicture("start");
         const profilePicture = profilePictureData.profile_picture;
         sessionStorage.setItem('profile_picture', profilePicture);
-        removeCookie('profile_picture')
 
         window.location.href = "/home"; // Redirect to home if succesfull
       } else {
